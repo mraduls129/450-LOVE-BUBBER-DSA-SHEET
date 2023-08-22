@@ -56,7 +56,7 @@ class Solution
 };
 
 
-//03. KTH SMALLEST ELEMENT                                                     {T.C = O(N*LOGK), S.C = O(N)}
+//03. KTH SMALLEST ELEMENT    /kth largest (only sign change and comment remain same)                                                 {T.C = O(N*LOGK), S.C = O(N)}
 class Solution{
     public:
     // arr : given array
@@ -189,15 +189,15 @@ class Solution{
         
         //insert element of 1st array into unionset/hash
         for(int i = 0 ; i < n ; i++){
-            unionSet.insert(a[i]);
+            u.insert(a[i]);
         }
         
         //insert element of 2nd array into unionset/hash
         for(int i  = 0 ; i < m ; i++){
-            unionSet.insert(b[i]);
+            u.insert(b[i]);
         }
         
-        return unionSet.size();
+        return u.size();
     }
 };
 /*
@@ -216,17 +216,17 @@ class Solution {
     // Function to return the count of the number of elements in
     // the intersection of two arrays.
     int NumberofElementsInIntersection(int a[], int b[], int n, int m) {
-        unordered_set<int>intersectionSet;
-        unordered_set<int>setA(a,a+n);
+        unordered_set<int>in;
+        unordered_set<int>set(a,a+n);
         
         //insert intersection of element of array in unordered set/hash
         for(int i = 0 ; i < m ; i++){
             if(setA.count(b[i]) > 0){
-                intersectionSet.insert(b[i]);
+                in.insert(b[i]);
             }
         }
         
-        return intersectionSet.size();
+        return in.size();
     }
 };
 /*
@@ -301,7 +301,7 @@ class Solution {
         int mini = 0;
         int maxi = 0;
         for(int i = 0 ; i < n ; i++){
-            if(arr[i]-k < 0){
+            if(arr[i] < k){
                 continue;
             }
             maxi = max(arr[n-1]-k ,arr[i-1]+k);
@@ -325,28 +325,19 @@ the largest and the smallest is 8-3 = 5.
 */
 
 
-//10. MINIMUM NUMBER OF JUMPS                                                      {T.C = O(N), S.C = O(1)}
-class Solution{
-  public:
-    int minJumps(int arr[], int n){
-        
-        int far = 0;                 //far == maximum reachable index
-        int curr = 0;
-        int jumps = 0;
-        
-        for(int i = 0 ; i < n-1 ; i++){  //check till second last index
-            far = max(far, i + arr[i]);
-            if(curr == i){
-                jumps++;
-                curr = far;
+//10. MINIMUM NUMBER OF JUMPS /jump game                                                     {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int jump(vector<int>& nums) {
+        int reach=0, jump=0, last=0;  
+        for(int i=0;i<nums.size()-1;i++){  
+            reach = max(reach, i+nums[i]);  
+            if(i==last){  
+                last = reach;  
+                jump++;  
             }
         }
-        if(curr < n-1){
-            return -1;
-        }
-        else{
-            return jumps;
-        }
+        return jump;  
     }
 };
 /*
@@ -383,6 +374,24 @@ public:
         }
 
         return slow;
+    }
+};
+
+OR 
+
+class Solution {
+public:
+    int findDuplicate(vector<int>& nums) {
+       unordered_set<int> s;
+
+        for (int i = 0; i < nums.size(); i++) {
+            if (s.find(nums[i]) != s.end()) {
+                return nums[i]; // Found the duplicate
+            }
+            s.insert(nums[i]);
+        }
+
+        return -1; // No duplicate found
     }
 };
 /*
@@ -515,65 +524,6 @@ class Solution{
         return count;
     }
 };
-//OTPIMIZED APPROACH (MERGE SORT)                                       {T.C = O(N*LOGN), S.C = O(N)}
-// int cnt = 0;                             //not accepable to use global variable
-int merge(vector<int>&arr, int low , int mid , int high){                  
-    vector<int>temp;
-    int left = low;                               //[low -------mid]
-    int right = mid+1;                            //[mid+1 --- high]
-
-    //storing elements in the temporary array in sorted manner
-    int cnt = 0;
-    while(left <= mid && right <= high){
-        if(arr[left] <= arr[right]){
-            temp.push_back(arr[left]);
-            left++;
-        }
-        //right is smaller
-        else{
-            temp.push_back(arr[right]);
-            //extra line add to merge sort to find count
-            cnt = cnt + (mid-left+1);
-            right++;
-        }
-    }
-    while(left <= mid){
-        temp.push_back(arr[left]);
-        left++;
-    }
-    while(right <= high){
-        temp.push_back(arr[right]);
-        right++;
-    }
-
-    //put anser in array
-    for(int i = low ; i <= high ; i++){
-        arr[i] = temp[i-low];
-    }
-
-    return cnt;
-}
-int mS(vector<int>&arr, int low , int high){
-    int cnt = 0;
-    if(low == high){
-        return cnt;
-    }
-    int mid = (low+high)/2;
-    cnt += mS(arr, low, mid);
-    cnt += mS(arr, mid+1, high);
-    cnt += merge(arr, low , mid , high);
-
-    return cnt;
-}
-int numberOfInversions(vector<int>&arr, int n) {
-    return mS(arr,0 , n-1);
-}
-/*
-Input: N = 5, arr[] = {2, 4, 1, 3, 5}
-Output: 3
-Explanation: The sequence 2, 4, 1, 3, 5 
-has three inversions (2, 1), (4, 1), (4, 3).
-*/
 
 
 //17. BEST TIME TO BUY AND SELL STOCK  I                                                  {T.C = O(N), S.C = O(1)}
@@ -744,47 +694,7 @@ The only possible way to rearrange them such that they satisfy all conditions is
 Other ways such as [1,-2,2,-5,3,-4], [3,1,2,-2,-5,-4], [-2,3,-5,1,-4,2] are incorrect because they do not satisfy one or more conditions. 
 */
 
-//20.2 ALTERNATE NUMBER (IF POSITIVE NUMBER != NEGATIVE NUMBER)                   {T.C = O(N) , S.C = O(N) }
-vector<int> alternateNumbers(vector<int>&a) {
-    int n = a.size();
-    //create 2 vectors
-    vector<int>pos, neg;
-    //push element to seperate vector
-    for(int i = 0 ; i < n ; i++){
-        if(a[i] > 0){
-            pos.push_back(a[i]);
-        }
-        else{
-            neg.push_back(a[i]);
-        }
-    }
 
-    if(pos.size() > neg.size()){
-        for(int i = 0 ; i < neg.size() ; i++){
-            a[2*i] = pos[i];
-            a[2*i + 1] = neg[i];
-        }
-        //put pos element directly to array
-        int index = neg.size()*2;
-        for(int j = neg.size() ; j < pos.size(); j++){
-            a[index] = pos[j];
-            index++;
-        }
-    }
-    else{ //pos.size() < neg.size()
-        for(int i = 0 ; i < pos.size() ; i++){
-            a[2*i] = pos[i];
-            a[2*i + 1] = neg[i];
-        }
-        //put neg element directly to array
-        int index = pos.size()*2;
-        for(int j = pos.size() ; j < neg.size(); j++){
-            a[index] = neg[j];
-            index++;
-        }
-    }
-    return a;
-}
 
 //21. SUBARRAY WITH 0 SUM
 //BRUTE FORCE                                                                               {T.C = O(N^2), S.C = O(1)}
@@ -942,6 +852,28 @@ class Solution{
         return ans;
     }
 };
+
+or
+
+class Solution {
+public:
+    int findLongestConseqSubseq(int arr[], int N) {
+     unordered_set<int> h(arr, arr + N);
+        int res = 1;
+
+        for (int i = 0; i < N; i++) {
+            if (h.find(arr[i] - 1) == h.end()) {
+                int curr = 1;
+                while (h.find(arr[i] + curr) != h.end()) {
+                    curr++;
+                }
+                res = max(res, curr);
+            }
+        }
+
+        return res;
+    }
+};
 /*
 Input:
 N = 7
@@ -987,7 +919,7 @@ more than n/k times.
 */
 
 
-//26. BUY AND SELL A SHARE AT MOST TWICE
+//26. BUY AND SELL A SHARE AT MOST TWICE  no need
 //BRUTE FORCE(RECURSION)
 int solve(int index, bool buy, vector<int>&price, int limit){
     int n = price.size();
@@ -1011,41 +943,8 @@ int solve(int index, bool buy, vector<int>&price, int limit){
 int maxProfit(vector<int>&price){
     return solve(0, 1, price, 2);                     //index = 0 , buy = 1, limit = 2
 }
-//OPTIMIZED APPROACH(DP)                                                                  {T.C =  O(N), S.C = O(N)}
-//1 TEST CASE FAILED
-int solveMem(int index, bool buy, vector<int>&price, int limit, vector<vector<vector<int>>>&dp){
-    int n = price.size();
-    //base case
-    if(index == n || limit == 0){
-        return 0;
-    }
-    
-    //step-3 if ans already present return it
-    if(dp[index][buy][limit] != -1 ){
-        return dp[index][buy][limit];
-    }
-    int profit = 0;
-    if(buy){
-        int buyKaro = -price[index] + solveMem(index+1, 0, price, limit, dp);
-        int skipKaro = 0 + solveMem(index+1, 1, price, limit, dp);
-        profit = max(buyKaro, skipKaro);
-    }
-    else{
-        int sellKaro = +price[index] + solveMem(index+1, 1, price, limit-1, dp);
-        int skipKaro = 0 + solveMem(index+1, 0 , price, limit, dp);
-        profit = max(sellKaro, skipKaro);
-    }
-    //step-2 store ans in dp
-    dp[index][buy][limit] = profit;
-    return dp[index][buy][limit];
-}
-int maxProfit(vector<int>&price){
-    int n = price.size();
-    //step-1 create a dp vector
-    vector<vector<vector<int>>>dp(n, vector<vector<int>>(2, vector<int>(3, -1)));  //limit = 2+1 = 3
-    return solveMem(0, 1, price, 2, dp);                     //index = 0 , buy = 1, limit = 2
-}
-/*
+
+
 Input:
 6
 10 22 5 75 65 80
