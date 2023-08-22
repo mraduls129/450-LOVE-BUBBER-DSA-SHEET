@@ -735,6 +735,22 @@ class Solution{
         return false;
     }
 };
+or
+class Solution {
+public:
+    int subarraySum(vector<int>& nums, int k) {
+        unordered_map<int,int> mp;
+        int curr=0,ans=0;
+        mp[0]=1;
+        for(int i:nums){
+            curr+=i;
+            ans+= mp[curr-k];
+             mp[curr] ++;
+           
+        }
+        return ans;
+    }
+};
 /*
 Input:
 5
@@ -1004,7 +1020,54 @@ Yes
 Explanation:
 a2[] is a subset of a1[]
 */
+--------------
+//majority (more freq element)
+	int findMajorityElement(const vector<int>& nums) {
+map<int, int> Map;
 
+    for (int i=0 to nums.size()) {
+        Map[nums]++;
+        if (Map[nums] > nums.size() / 2) {
+            return nums; // Found the majority element
+        }
+    }
+
+    return -1; // No majority element found
+}
+//pivot equilibrium
+class Solution {
+public:
+    int pivotIndex(vector<int>& nums) {
+        int right_sum = accumulate(nums.begin(), nums.end(), 0); // Calculate total sum
+        int left_sum = 0;
+        
+        for (int i = 0; i < nums.size(); i++) {
+            right_sum -= nums[i]; // Subtract the current element from the right sum
+            if (left_sum == right_sum) {
+                return i; // Found the pivot index
+            }
+            left_sum += nums[i]; // Add the current element to the left sum for the next iteration
+        }
+        
+        return -1; // No pivot index found
+    }
+};
+//count pair with sum target K/0
+int countPairsWithSum(vector<int>& arr, int targetSum) {
+   map<int, int> m;
+    int pairCount = 0;
+
+    for (int i = 0; i < arr.size(); ++i) {
+        int num = arr[i];
+        int diff = targetSum - num;
+        if (m.find(diff) != m.end()) {
+            pairCount += m[diff];
+        }
+        m[num]++;
+    }
+
+    return pairCount;
+}
 
 //28. FIND THE TRIPLET SUM OF AN ARRAY
 
@@ -1337,6 +1400,113 @@ Output: 5
 Explanation: The middle element for
 {1,2,3,5,6,7,9} is 5
 */
+// missing and repetating
+vector<int> findTwoElement(vector<int> arr, int n) {
+  unordered_map<int, int> freq;
+    int repeating = -1, missing = -1;
 
+    for (int i=0;i< arr.size();i++) {
+        freq[i]++;
+    }
 
+    for (int i = 1; i <= n; ++i) {
+        if (freq[i] == 0) {
+            missing = i;
+        } else if (freq[i] == 2) {
+            repeating = i;
+        }
+    }
+
+    return {repeating, missing};
+}
+// sliding window max
+vector<int> maxSlidingWindow(std::vector<int>& nums, int k) {
+vector<int> result;
+   deque<int> dq; // Store indices
+    
+    for (int i = 0; i < nums.size(); ++i) {
+        // Remove indices that are out of the current window
+        while (!dq.empty() && dq.front() <= i - k) {
+            dq.pop_front();
+        }
+        
+        // Remove indices of smaller elements as they are no longer candidates
+        while (!dq.empty() && nums[dq.back()] < nums[i]) {
+            dq.pop_back();
+        }
+        
+        dq.push_back(i); // Add the current index
+        
+        if (i >= k - 1) {
+            result.push_back(nums[dq.front()]); // Maximum of the current window
+        }
+    }
+    
+    return result;
+
+// rotate array
+void rotateRight(vector<int>& nums, int k) {
+    int n = nums.size();
+    k %= n; // To handle k larger than array size
+
+    vector<int> temp(n);
+    for (int i = 0; i < n; ++i) {
+        temp[(i + k) % n] = nums[i];   //right wala halka rhega
+    }
+
+    nums = temp;
+}
+
+void rotateLeft(vector<int>& nums, int k) {
+    int n = nums.size();
+    k %= n; // To handle k larger than array size
+
+   vector<int> temp(n);
+    for (int i = 0; i < n; ++i) {                 
+        temp[i] = nums[(i + k) % n];  // left wala halka rhega
+    } 
+
+    nums = temp;    
+}
+//triplet sum with 0/k   
+vector<vector<int>> findTripletsWithSum(vector<int>& nums, int targetSum) {
+    vector<vector<int>> triplets;
+	set<int> s;
+    int n = nums.size();
+
+    for (int i = 0; i < n - 2; ++i) {
+   for (int j = i + 1; j < n; ++j) {
+            int k = targetSum - nums[i] - nums[j];
+            if (s.find(k) != s.end()) {
+                triplets.push_back({nums[i], nums[j], k});
+            }
+            s.insert(nums[j]);
+        }
+    }
+
+    return triplets;
+}
+//largest subaaraay with target k/0
+lass Solution{
+public:
+    int lenOfLongSubarr(int A[], int N, int K) {
+        int length = 0;
+        unordered_map<int, int> m;
+        int sum = 0;
+        m[0] = -1;
+        
+        for (int i = 0; i < N; ++i) {
+            sum += A[i];
+            if (m.find(sum - K) != m.end()) {
+                length =max(length, i - m[sum - K]);
+            }
+            if (m.find(sum) == m.end()) {
+                m[sum] = i;
+            }
+        }
+
+        return length;
+    }
+};
+//
 /*----------------------------------------------------  THE  END    ---------------------------------------------------------*/
