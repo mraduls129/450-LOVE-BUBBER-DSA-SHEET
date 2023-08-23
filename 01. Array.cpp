@@ -1625,6 +1625,22 @@ bool hasPairWithDifference(const vector<int>& arr, int N) {
 
     return false; // No valid pair found
 }
-
+//pair with differnce k
+int findPairs(vector<int>& nums, int k) {
+        sort(nums.begin(), nums.end());
+        map<int, int> m;
+        int count = 0;
+        int n = nums.size();
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (nums[j] - nums[i] == k)
+                    m[nums[i]] = nums[j];
+            }
+        }
+        
+        return m.size();
+    }
+//
 
 /*----------------------------------------------------  THE  END    ---------------------------------------------------------*/
