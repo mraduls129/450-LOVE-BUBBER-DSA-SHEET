@@ -1508,5 +1508,123 @@ public:
         return length;
     }
 };
-//
+// row with  max 1s/0s
+int findRowWithMaxZeros(const vector<vector<int>>& matrix) {
+    int Row = -1; // Initialize with an invalid value
+    int Count = -1; // Initialize with an invalid value   (0) for 1s
+    
+    for (int i = 0; i < matrix.size(); ++i) {
+        int zerosCount = count(matrix[i].begin(), matrix[i].end(), 0);       (1) for 1s
+        
+        if (zerosCount > Count) {
+            Count = zerosCount;
+            Row = i;
+        }
+    }
+    
+    return Row;
+}
+// fist and last occurernces
+pair<long, long> indexes(const vector<long long>& v, long long x) {
+    long firstIndex = -1;
+    long lastIndex = -1;
+    
+    for (long i = 0; i < v.size(); ++i) {
+        if (v[i] == x) {
+            if (firstIndex == -1) {
+                firstIndex = i;
+            }
+            lastIndex = i;
+        }
+    }
+    
+    return make_pair(firstIndex, lastIndex);
+}
+//count pair with sum 
+int countPairsWithSum(const vector<int>& nums, int target) {
+    unordered_map<int, int> m;
+    int count = 0;
+
+    for (int i=0 to nums.size) {
+        int complement = target - nums[i];
+        count += m[complement]; // Add the frequency of complement
+
+        m[nums[i]]++; // Update frequency of the current number      //isme bhi h
+    }
+
+    return count;
+}
+
+//two pair sum 
+pair<int, int> twoSum(const vector<int>& nums, int target) {
+    std::unordered_map<int, int> m;
+    
+    for (int i = 0; i < nums.size(); ++i) {
+        int complement = target - nums[i];
+        
+        if (m.find(complement) != m.end()) {
+            return {m[complement], i};
+        }
+        
+        m[nums[i]] = i;              // isme bhi h
+    }
+    
+    return {-1, -1}; // No valid solution found
+}
+
+//add two arrays
+vector<int> sumArrays(const vector<int>& arr1, const vector<int>& arr2) {
+    int size = max(arr1.size(), arr2.size());
+    vector<int> result(size, 0);   // value can be comes from size value to o value
+
+    for (int i = 0; i < size; ++i) {
+        int val1 = (i < arr1.size()) ? arr1[i] : 0;
+        int val2 = (i < arr2.size()) ? arr2[i] : 0;
+        result[i] = val1 + val2;
+    }
+
+    return result;
+}
+// sum of infinity array
+int main() {
+    
+    const int maxSize = 1000000; 
+    int sum = 0;
+
+    for (int i = 0; i < maxSize; ++i) {
+        sum += i;
+    }
+
+//count pair with difference
+int countPairsWithDifference(const std::vector<int>& nums, int k) {
+   unordered_set<int> seen;
+    int count = 0;
+
+    for (int num : nums) {
+        if (seen.count(num - k)) {
+            count++;
+        }
+        if (seen.count(num + k)) {
+            count++;
+        }
+        seen.insert(num);
+    }
+
+    return count;
+}
+// find pair with diddernce
+bool hasPairWithDifference(const vector<int>& arr, int N) {
+ unordered_set<int> seen;
+
+    for (int num : arr) {
+        if (seen.count(num + N) || seen.count(num - N)) {
+            return true; // Found a valid pair
+        }                                                                            // both solution are same
+        seen.insert(num);
+    }
+
+    return false; // No valid pair found
+}
+
+
 /*----------------------------------------------------  THE  END    ---------------------------------------------------------*/
