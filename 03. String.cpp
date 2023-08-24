@@ -57,27 +57,21 @@ Explanation: S is a palindrome
 
 
 //49. PRINT ALL THE DUPLICATES IN THE INPUT STRING                                  {T.C = O(N), S.C = O(M)=no. of unique char}
-void printDuplicate(string &s){
-    int n = s.length();
-    
-    //create a unordered map to store key & val
-    unordered_map<char, int>mp;
-    //put string element into map
-    for(int i = 0 ; i < n ; i++){
+void printDuplicates(const string& s) {
+    unordered_map<char, int> mp;
+
+   for (int i = 0; i < s.length(); ++i) {
         mp[s[i]]++;
     }
-    
-    //traverse on map
-    for(auto it : mp){
-        if(it.second > 1){
-            cout<<it.first<<" "<<it.second<<endl;
+
+  cout << "Duplicate characters: ";
+    for (int i = 0; i < s.length(); ++i) {
+        if (mp[s[i]]  > 1) {
+           cout << s[i] << " ";
+            mp[s[i]]  = 0; // Mark as printed (ab sirf duplicate ke bhi single element hi aayega)
         }
     }
-}
-int main(){
-    string s = "addaccged";
-    printDuplicate(s);
-    return 0;
+   cout << endl;
 }
 /*
 output
@@ -87,41 +81,7 @@ a 2
 */
 
 
-//50. WHY JAVA STRINGS ARE IMMUTABLE
-/*
-Java strings are immutable, meaning once a string object is created, its value cannot be changed.
-This design decision was made for several reasons:
 
-String Pooling: 
-Java uses a special memory area called the "string pool" to store string literals. When you create a string literal 
-(e.g., "hello"), Java checks the string pool first. If a string with the same value already exists, it returns a 
-reference to that existing string instead of creating a new one. This reduces memory consumption and improves 
-performance since many strings can be shared.
-
-Thread-Safety: 
-Because strings are immutable, they are inherently thread-safe. Multiple threads can safely use and 
-share the same string object without the risk of concurrent modification issues.
-
-Caching Hashcode: 
-The immutable nature allows Java to cache the hashcode of a string when it is first calculated. 
-Since the hashcode of a string never changes, it can be safely cached and used in hash-based data structures like 
-HashMap, HashSet, etc.
-
-Security: 
-String immutability is vital for security, particularly in scenarios like storing sensitive information
-like passwords. Immutable strings prevent potential data tampering or manipulation after creation.
-
-String Interning: 
-String interning is the process of storing unique string literals in the string pool. Java ensures
-that identical string literals are not duplicated in memory, saving space and optimizing memory usage.
-
-Consistency: 
-Immutability ensures that a string's value remains constant throughout its lifetime. This consistency makes 
-code more predictable and easier to reason about.
-
-Despite their immutability, you can perform various string manipulation operations in Java using methods like concat, 
-substring, replace, etc. However, these methods do not modify the original string but instead create new string objects with the desired modifications.
-*/
 
 
 //51. CHECK IF ONE STRING IS ROTATION OF ANOTHER STRING
@@ -135,30 +95,6 @@ int isCyclicRotation(string &p, string &q)
     return 0;
 }
 
-//another approach                                                            {T.C = O(N^2), S.C = O(N)}
-int isCyclicRotation(string &p, string &q) {
-    if (p == q) {
-        return 1; // If p and q are equal, q is a cyclic rotation of p
-    }
-
-    string x = p; // Create a copy of string p
-
-    char ch = x[x.size() - 1]; // Store the last character of x
-    x.erase(x.size() - 1, 1); // Remove the last character from x
-    x.insert(0, 1, ch); // Insert the last character at the beginning of x
-
-    while (x != p) { // Continue until x becomes equal to p again
-        if (x == q) {
-            return 1; // If x is equal to q, q is a cyclic rotation of p
-        }
-
-        char ch = x[x.size() - 1]; // Store the last character of x
-        x.erase(x.size() - 1, 1); // Remove the last character from x
-        x.insert(0, 1, ch); // Insert the last character at the beginning of x
-    }
-
-    return 0; // q is not a cyclic rotation of p
-}
 
 /*
 Sample Input 1:
@@ -170,41 +106,7 @@ Sample Output 1:
 
 
 //52. CHECK IF THE GIVEN STRING IS SHUFFLED SUBSTRING OF ANOTHER STRING               {T.C = O(N) , S.C = O(1)}
-int main(){                                                                  
-    string s1, s2, res;
-    cin>>s1>>s2>>res;
-    int l1 = s1.length();
-    int l2 = s2.length();
-    int lr = res.length();
-    
-    if(l1+l2 != lr){
-        cout<<"No";
-    }
-    else{
-        int flag = 0;
-        int i = 0, j = 0, k = 0;
-        while(k < lr){
-            if(i < lr && s1[i] == res[k]){
-                i++;
-            }
-            else if(j < l2 && s2[j] == res[k] ){
-                j++;
-            }
-            else{
-                flag = 1;
-                break;
-            }
-            k++;
-        }
-        if(i < l1 || j < l2){
-            cout<<"No";
-        }
-        else{
-            cout<<"Yes";
-        }
-    }
-    return 0;
-}
+                                                               
 /*
 input
 xy
@@ -215,37 +117,33 @@ Yes
 */
 
 
-//53. COUNT AND SAY                                                                {T.C = O(N^2) , S.C = O(N)}
-class Solution {
-public:
-    string countAndSay(int n) {
-        if(n==1){
-            return "1";
-        }
-        if(n==2){
-            return "11";
-        }
-        string s = "11";
-        for(int i = 3 ; i <= n ;i++){
-            string t = "";
-            s = s+'%';                     //put any extra character at last
-            int count = 1;
-            for(int j = 1 ; j < s.length() ; j++){     //if j = 0  then underflow (j-1)
-                if(s[j] != s[j-1]){
-                    t = t+ to_string(count);           //count, add to string
-                    t = t+s[j-1];                      //say, add to string
-                    count = 1;                         //reset count
-                }
-                else{
-                    count++;
-                }
-            }
-            s = t;
-        }
-        return s;
+//53. COUNT AND SAY     (medium)                                                           {T.C = O(N^2) , S.C = O(N)}
+string countAndSay(int n) {
+    if (n <= 0) {
+        return "";
     }
-};
-/*
+    
+    string ans = "1";
+    
+    for (int i = 1; i < n; ++i) {
+        string s;
+        int count = 1;
+        
+        for (int j = 1; j < ans.length(); ++j) {
+            if (ans[j] == ans[j - 1]) {
+                count++;
+            } else {
+                s += to_string(count) + ans[j - 1];
+                count = 1;
+            }
+        }
+        
+        s += to_string(count) + ans.back();
+       ans = move(ans);
+    }
+    
+    return ans;
+}
 Input: n = 4
 Output: "1211"
 Explanation:
@@ -256,7 +154,7 @@ countAndSay(4) = say "21" = one 2 + one 1 = "12" + "11" = "1211"
 */
 
 
-//54. LONGEST PALINDROME IN A STRING                                              {T.C = O(N^2), S.C = O(1)}
+//54. LONGEST PALINDROME STRING                                              {T.C = O(N^2), S.C = O(1)}
 class Solution {
   public:
     string longestPalin (string s) {
@@ -403,109 +301,37 @@ Your Recursion Output:
 axxxy axxx axxy axx axxy axx axy ax axxy axx axy ax axy ax ay a xxxy xxx xxy xx xxy xx xy x xxy xx xy x xy x y  0
 */
 
-//RECURSION + MEMOIZATION                                                    {T.C = O(EXP), S.C = O(N)}
-//REDUNDANT ELEMENT ELIMINATES
-class Solution {
-	public:
-    void helper(string& str, string temp, int i, vector<vector<int>>& dp) {
-        // Base case
-        if (i == str.length()) {
-            cout << temp << " ";
-            return;
-        }
 
-        // Check if answer already present in dp
-        if (dp[i][temp.length()] != -1) {
-            cout << temp + str.substr(i) << " ";
-            return;
-        }
 
-        // Take
-        helper(str, temp + str[i], i + 1, dp);
 
-        // No take
-        helper(str, temp, i + 1, dp);
+//58. generate PERMUTIONS OF A GIVEN STRING                                                                     {T.C = O(N!) , S.C = O(N)}
 
-        // Store the answer in dp
-        dp[i][temp.length()] = i;
-    }
+    vector<string> find_permutation(string S)
+    {
+        vector<string> result;
+        sort(S.begin(), S.end());
 
-    int LongestRepeatingSubsequence(string str) {
-        vector<vector<int>> dp(str.length() + 1, vector<int>(str.length() + 1, -1));
-        helper(str, "", 0, dp);
-        return 0;
+        do {
+            result.push_back(S);
+        } while (next_permutation(S.begin(), S.end()));
+
+        return result;
     }
 };
-/*
-For Input: 
-axxxy
-
-Your DP output
-axxxy axxx axxy axx axxy axy ax axxy axy ay a xxxy xxy xy y  0
-*/
 
 
-//58. PERMUTIONS OF A GIVEN STRING                                                                     {T.C = O(N!) , S.C = O(N)}
-//not handle duplicates        (error)
-class Solution
-{
-	public:
-	    void solve(vector<string>&ans, string &s, int index){
-	        int n = s.length();
-	        //base case
-	        if(index >= n){
-	            ans.push_back(s);
-	        }
-	        
-	        for(int i = index ; i < n ; i++ ){
-	            swap(s[index], s[i]);
-	            solve(ans, s, index+1);
-	            //backtrack
-	            swap(s[index],s[i]);
-	        }
-	    }
-		vector<string>find_permutation(string s)
-		{
-		    vector<string>ans;
-		    solve(ans, s, 0);
-		    return ans;
-		}
-};
-//handle duplicates (using map)
-class Solution {
-public:
-    set<string> st;
-    string s;
-
-    void rec(int i) {
-        if (i == s.size()) {
-            st.insert(s);
-        } else {
-            for (int j = i; j < s.size(); j++) {
-                swap(s[i], s[j]);
-                rec(i + 1);                            //RECURSIVE CALL
-                //backtrack
-                swap(s[i], s[j]);
-            }
-        }
-    }
-
-    vector<string> find_permutation(string S) {
-        s = S;
-        rec(0);
-        vector<string> ans(st.begin(), st.end());
-        return ans;
-    }
-};
-/*
-Input: ABC
 Output:
 ABC ACB BAC BCA CAB CBA
 Explanation:
 Given string ABC has permutations in 6 
 forms as ABC, ACB, BAC, BCA, CAB and CBA .
 */
-
+-------------------------------
+	//sort by length
+	bool compareByLength(const std::string& a, const std::string& b) {
+    return a.length() < b.length();
+}
+-----------------------------------------
 
 //59. SPLIT BINARY STRING                                                               {T.C = O(N), S.C = O(1)}
 int splitString(string &str)  
@@ -540,7 +366,80 @@ Sample Output 1 :
 3
 -1
 */
+-----------------------
+	int countCharacterOccurrences(const std::string& str, char target) {
+    int count = 0;
 
+    for (char c : str) {
+        if (c == target) {
+            count++;
+        }
+    }
+
+    return count;
+}
+----------------------------------------------
+	check digit
+	bool containsOnlyDigits(const std::string& str) {
+    for (char c : str) {
+        if (!isdigit(c)) {
+            return false; // If any non-digit character is found, return false
+        }
+    }
+    return true; // All characters are digits
+}
+--------------------------
+	count vowels and conso
+	void countVowelsAndConsonants(const std::string& str, int& vowels, int& consonants) {
+    vowels = 0;
+    consonants = 0;
+
+    for (char c : str) {
+        c = tolower(c); // Convert the character to lowercase for case-insensitive comparison
+        if (isalpha(c)) {
+            if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {
+                vowels++;
+            } else {
+                consonants++;
+            }
+-------------------------------------
+	convert string to int
+	int main() {
+    std::string numericString = "12345";
+
+    try {
+        int convertedValue = std::stoi(numericString);   //stoi means change to int
+        std::cout << "Converted integer value: " << convertedValue << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "Conversion error: " << e.what() << std::endl;
+    }
+
+    return 0;
+}--------------------------------
+		convert int to string
+		int main() {
+    int numericInt = 12345;
+    std::string convertedString = to_string(numericInt); // to string meaans change to string
+    std::cout << "Converted string: " << convertedString << std::endl;
+    return 0;
+}----------------------
+	    sum of each strings
+	
+    int findSum(string str) {
+        int sum = 0;
+        int num = 0;
+
+        for (char c : str) {
+            if (isdigit(c)) {
+                num = num * 10 + (c - '0');
+            } else {
+                sum += num;
+                num = 0;
+            }
+        }
+
+        return sum + num; // Add the last accumulated number
+    }----------------------------
 
 //60. WORD WRAP                                                                   {T.C = O(N^2), S.C = O(N^2)}
 class Solution {
@@ -1400,7 +1299,7 @@ bit to have "0101010101"
 */
 
 
-//76a. MOST REPEATING STRING IN A SEQUENCE                                                                {T.C = O(N), S.C = O(N)}
+//76a. MOST REPEATING STRING IN A SEQUENCE     // hihest occurece                                                           {T.C = O(N), S.C = O(N)}
 class Solution
 {
   public:
