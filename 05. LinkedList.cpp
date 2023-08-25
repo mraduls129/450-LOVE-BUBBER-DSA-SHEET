@@ -21,21 +21,21 @@ class Solution
     public:
     struct Node* reverseList(struct Node *head)
     {
-        if(head == NULL || head->next == NULL){
+        if(head == NULL || head->next == NULL){          //base case
             return head;
         }
         
         Node * prev = NULL;
-        Node * curr = head;
-        Node * forward = NULL;
+        Node * curr = head;             //two pointer
+        Node * temp = NULL;
         
-        while(curr != NULL){
-            forward = curr->next;
-            curr->next = prev;
+        while(curr != NULL){            // while loop
+            temp = curr->next;
+            curr->next = prev;           // swap
             prev = curr;
-            curr = forward;
+            curr = temp;              //increment ++
         }
-        return prev;
+        return prev;                       //decrement --
     } 
 };
 //RECURSIVE APPROACH                                                           {T.C = O(N), S.C = O(1)}
@@ -185,6 +185,58 @@ means last node is connected with xth
 node of linked list. Therefore, there
 exists a loop.
 */
+------------------------------------
+	implementation of linked list
+	
+
+#include <iostream>
+
+using namespace std;
+
+//Declare Node
+struct Node {
+    int num;
+    Node* next;
+};
+
+//Declare starting (Head) node
+struct Node* head = NULL;
+
+//Insert node at start
+void insertNode(int n)
+{
+    struct Node* newNode = new Node;
+    newNode->num = n;
+    newNode->next = head;
+    head = newNode;
+}
+
+//Traverse/ display all nodes (print items)
+void display()
+{
+    if (head == NULL) {
+        cout << "List is empty!" << endl;
+        return;
+    }
+    struct Node* temp = head;
+    while (temp != NULL) {
+        cout << temp->num << " ";
+        temp = temp->next;
+    }
+    cout << endl;
+}
+
+//delete node from start
+void deleteItem()
+{
+    if (head == NULL) {
+        cout << "List is empty!" << endl;
+        return;
+    }
+    cout << head->num << " is removed." << endl;
+    head = head->next;
+}
+--------------------------------------------------------
 
 
 //130. REMOVE LOOP IN LINKED LIST                                                        {T.C = O(N), S.C = O(1)}
@@ -244,7 +296,7 @@ successfully, the answer will be 1.
 */
 
 
-//131. FIND THE FIRST NODE OF LOOP IN LINKED LIST                                                     {T.C = O(N), S.C = O(1)}
+//131. FIND THE FIRST NODE OF LOOP IN LINKED LIST   or detect loop                                         {T.C = O(N), S.C = O(1)}
 class Solution
 {
     public:
@@ -715,7 +767,7 @@ Explanation: The middle node of the list is node 3.
 */
 
 
-//142. CHECK IF CIRCULAR LINKED LIST                                                    {T.C = O(N), S.C = O(1)}
+//142. CHECK IF CIRCULAR LINKED LIST      check detect loop                                              {T.C = O(N), S.C = O(1)}
 bool isCircular(Node *head)
 {
     if(head == NULL || head->next == NULL){
