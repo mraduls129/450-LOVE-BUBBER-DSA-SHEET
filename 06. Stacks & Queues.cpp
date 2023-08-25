@@ -35,7 +35,7 @@ public:
         top--;
     }
 
-    //top/peek
+    //top
     int peek(){
         if(top == -1){
             cout<<"No element in stack "<<endl;
@@ -388,102 +388,8 @@ index 3 from bottom, which is 30. Deleting 30, stack will look like {10 20 40 50
 */
 
 
-//167. N STACK IN AN ARRAY                                                      (T.C == O(N) , S.C == O(N + S)
-class NStack
-{
-    int *arr;
-    int *top;
-    int *next;
-    int n , s;
-    int freespot;
-public:
-    // Initialize your data structure.
-    //arr(actual arr), next(stores position) , freespot(store temp ans)
-    NStack(int N, int S)
-    {
-        n = N;         //no. of stacks
-        s = S;         //size of array
 
-        arr = new int[s];
-        top = new int[n];
-        next = new int[s];
 
-        //top initialize with -1
-        for(int i = 0 ; i < n ; i++){
-            top[i] = -1;
-        }
-
-        //next initialize
-        for(int i = 0 ; i < s; i++){
-            next[i] = i+1;
-        }
-        //update last index value to -1
-        next[s-1] = -1;
-
-        //freespot initialize
-        freespot = 0;
-    }
-
-    // Pushes 'X' into the Mth stack. Returns true if it gets pushed into the stack, and false otherwise.
-    bool push(int x, int m)
-    {
-        //check for overflow
-        if(freespot == -1){
-            return false;
-        }
-        //find index
-        int index = freespot;
-
-        //update freespot
-        freespot = next[index];
-
-        //insert element into array
-        arr[index] = x;
-
-        //update next
-        next[index] = top[m-1];
-
-        //update top
-        top[m-1] = index;
-
-        return true;
-    }
-
-    // Pops top element from Mth Stack. Returns -1 if the stack is empty, otherwise returns the popped element.
-    int pop(int m)
-    {
-        //reverse of push exactly
-        //check underflow
-        if(top[m-1] == -1){
-            return -1;
-        }
-
-        int index = top[m-1];
-
-        top[m-1] = next[index];
-
-        next[index] = freespot;
-
-        freespot = index;
-
-        return arr[index];
-    }
-};
-/*
-Sample Input 1 :
-3 6 5           query(1 == push, 2 == pop)
-1 10 1          //push(10, 1)    //push 10 in 1st stack
-1 20 1
-1 30 2
-2 1             //pop(1)         //pop from 1st stack
-2 2
-Sample Output 1 :
-True 
-True
-True
-20
-30
-*/
 
 
 //168. CHECK THE EXPRESSION HAS VALID OR BALANCED PARANTHESIS OR NOT                                                            {T.C = O(N), S.C = O(N)}
@@ -554,92 +460,48 @@ Output: skeeGrofskeeG
 
 
 //170. SPECIAL STACK / DESIGN A STACK THAT SUPPORTS GETMIN() IN O(1) TIME AND O(1) EXTRA SPACE       {T.C = O(1) , S.C = O(1)}
-//APPROACH 1
-int mini;
-void push(stack<int>& s, int curr){
-	if(s.empty()){
-	    s.push(curr);
-	    mini = curr;
-	}else{
-	    if(curr < mini){
-	        int val = 2*curr - mini;
-	        s.push(val);
-	        mini = curr;
-	    }else{
-	        s.push(curr);
-	    }
-	}
-}
+class SpecialStack {
+private:
+    std::stack<int> dataStack;
+    std::stack<int> minStack;
 
-bool isFull(stack<int>& s,int n){
-	if(s.size() == n){
-	    return true;
-	}
-	return false;
-}
+public:
+    void push(int val) {
+        dataStack.push(val);
 
-bool isEmpty(stack<int>& s){
-	return s.empty();
-}
+        if (minStack.empty() || val <= minStack.top()) {
+            minStack.push(val);
+        }
+    }
 
-int pop(stack<int>& s){
-	if(s.empty()){
-	    return -1;
-	}else{
-	    int curr = s.top();
-	    s.pop();
-	    if(curr > mini){
-	        return curr;
-	    }else{
-	        int prevMini = mini;
-	        int val = 2*mini - curr;
-	        mini = val;
-	        
-	        return prevMini;
-	    }
-	}
-}
+    void pop() {
+        if (!dataStack.empty()) {
+            if (dataStack.top() == minStack.top()) {
+                minStack.pop();
+            }
+            dataStack.pop();
+        }
+    }
 
-int getMin(stack<int>& s){
-	if(s.empty()){
-	    return -1;
-	}
-	return mini;
-}
+    int top() {
+        if (!dataStack.empty()) {
+            return dataStack.top();
+        }
+        return -1; // Or throw an exception indicating empty stack
+    }
 
-//APPROACH 2                                                                                   {T.C = O(1) & GETIN(T.C = O(N)) , S.C = O(1)}
-void push(stack<int>& s, int a){
-	s.push(a);
-}
+    int getMin() {
+        if (!minStack.empty()) {
+            return minStack.top();
+        }
+        return -1; // Or throw an exception indicating empty stack
+    }
 
-bool isFull(stack<int>& s,int n){
-	if(s.size() == n)
-	    return true;
-	return false;
-}
+    bool empty() {
+        return dataStack.empty();
+    }
+};
 
-bool isEmpty(stack<int>& s){
-	if(s.size()==0)
-	    return true;
-	return false;
-}
-
-int pop(stack<int>& s){
-	int t = s.top();
-	s.pop();
-	return t;
-}
-
-int getMin(stack<int>& s){
-    int ans = 1e5;
-	while(s.size()!=0)
-	{
-	    ans = min(ans,s.top());
-	    s.pop();
-	}
-	return ans;
-	
-}
 /*
 Input:
 Stack: 18 19 29 15 16
@@ -796,18 +658,153 @@ know 1. Therefore, 1 is the celebrity.
 */
 
 
-//173. ARITHMETIC EXPRESSION EVALUATION
-/*
-    infix notation:  A + B
-    Polish notation (prefix notation): +AB
-    Reverse Polish notation (postfix notation): AB+
+//173. stack using queue
+class MyStack {
+    queue<int> q;
+public:
+    MyStack() {
+        
+    }
+    
+    void push(int x) {
+        int n = q.size();
+        q.push(x);
+        for (int i = 0; i < n; i++) {
+            q.push(q.front());
+            q.pop();
+        }
+    }
+    
+    int pop() {
+        int x = q.front();
+        q.pop();
+        return x;
+    }
+    
+    int top() {
+        return q.front();
+    }
+    
+    bool empty() {
+        return q.empty();
+    }
+};-------------------------------------
+by using two queue
+	class MyStack {
+public:
+    
+    queue<int> q1 , q2;
+    
+    
+    MyStack() {
+        
+    }
+    
+    void push(int x) {
+        if(q1.empty()) q1.push(x);
+        else {
+            while(!q1.empty()){
+                q2.push(q1.front());
+                q1.pop();
+            }
+            q1.push(x);
+            while(!q2.empty()){
+                q1.push(q2.front());
+                q2.pop();
+            }
+        }
+    }
+    
+    int pop() {
+        int top = q1.front();
+        q1.pop();
+        return top;
+    }
+    
+    int top() {
+        return q1.front();
+    }
+    
+    bool empty() {
+        if(q1.empty()){
+            return true;
+        }
+        return false;
+    }
+};-----------------------------------------
+//queue using stack
 
-    There are 3 levels of precedence for 5 binary operators as given below:
-        Highest: Exponentiation (^)
-        Next highest: Multiplication (*) and division (/)
-        Lowest: Addition (+) and Subtraction (-)
-*/
-
+	class MyQueue {
+    stack<int> s1;
+    
+public:
+    MyQueue() {
+        
+    }
+    
+    void push(int x) {
+        if(empty()){
+            s1.push(x);
+            return ;
+        }
+        int top = pop();
+        push(x);
+        s1.push(top);
+       
+    }
+    
+    int pop() {
+        int top = s1.top();
+        s1.pop();
+        return top;
+    }
+    
+    int peek() {
+         int top = s1.top();
+        return top;
+    }
+    
+    bool empty() {
+        return s1.size()==0;
+    }
+};
+-------------------------------------
+	//using two stack
+class MyQueue {
+public:
+    stack<int>s1;
+    stack<int>s;
+    MyQueue() {
+        
+    }
+    
+    void push(int x) {
+        while(!s.empty()){
+            s1.push(s.top());
+            s.pop();
+        }
+        s1.push(x);
+        while(!s1.empty()){
+            s.push(s1.top());
+            s1.pop();
+        }
+    }
+    
+    int pop() {
+        int f = s.top();
+        s.pop();
+        return f;
+    }
+    
+    int peek() {
+        return s.top();
+    }
+    
+    bool empty() {
+        if(s.empty()) return true;
+        return false;
+    }
+};---------------------------------
 
 //174. EVALUATION OF POSTFIX EXPRESSION                                                                       {T.C = O(N), S.C = O(N)}
 class Solution
@@ -1300,7 +1297,7 @@ public:
         int i = 0; 
         int j = 0;
         
-        while(i < N ){
+	    while(i < N ){
             st.push(a[i]);
             while(j < N && !st.empty() && b[j] == st.top()){
                 st.pop();
