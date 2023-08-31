@@ -1,0 +1,1843 @@
+  TALK Ai
+  ------------------------------------ SERVER
+  // Import required modules and packages using ES6 import statements
+import express from 'express'; // Import Express.js framework
+import * as dotenv from 'dotenv'; // Import dotenv for environment variables
+import cors from 'cors'; // Import CORS middleware
+import { Configuration, OpenAIApi } from 'openai'; // Import Configuration and OpenAIApi from the 'openai' package
+
+// Load environment variables from a .env file into process.env
+dotenv.config();
+
+// Create an instance of Configuration with OpenAI API key
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Create an instance of OpenAIApi using the provided configuration
+const openai = new OpenAIApi(configuration);
+
+// Create an instance of Express application
+const app = express();
+
+// Use the CORS middleware to allow cross-origin requests
+app.use(cors());
+
+// Use the express.json() middleware to parse incoming JSON requests
+app.use(express.json());
+
+// Define a route to handle GET requests at the root URL
+app.get('/', async (req, res) => {
+  res.status(200).send({
+    message: 'Hello from CodeX!',
+  });
+});
+
+// Define a route to handle POST requests at the root URL
+app.post('/', async (req, res) => {
+  try {
+    // Extract the 'prompt' field from the JSON body of the request
+    const prompt = req.body.prompt;
+
+    // Use the OpenAI API to create a completion for the provided 'prompt'
+    const response = await openai.createCompletion({
+      model: 'text-davinci-003',
+      prompt: `${prompt}`,
+      temperature: 0, // Higher values make the model take more risks
+      max_tokens: 3000, // Maximum number of tokens to generate in the completion
+      top_p: 1, // Alternative to sampling with temperature
+      frequency_penalty: 0.5, // Penalize tokens based on frequency
+      presence_penalty: 0, // Penalize tokens based on presence
+    });
+
+    // Send the generated text as a response
+    res.status(200).send({
+      bot: response.data.choices[0].text,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error || 'Something went wrong');
+  }
+});
+
+// Start the server and listen on port 5000
+app.listen(5000, () => console.log('AI server started on http://localhost:5000'));
+------------------------------------------------ CLIENT
+
+// Import images for the chat profile icons
+import bot from './assets/bot.svg';
+import user from './assets/user.svg';
+
+// Get form and chat container elements from the DOM
+const form = document.querySelector('form');
+const chatContainer = document.querySelector('#chat_container');
+
+// Declare a variable to store the interval for loading indicator animation
+let loadInterval;
+
+// Function to display loading animation
+function loader(element) {
+    element.textContent = '';
+
+    // Set an interval to update the loading indicator animation
+    loadInterval = setInterval(() => {
+        // Update the text content of the loading indicator
+        element.textContent += '.';
+
+        // If the loading indicator has reached three dots, reset it
+        if (element.textContent === '....') {
+            element.textContent = '';
+        }
+    }, 300);
+}
+
+// Function to type out text with a typewriter effect
+function typeText(element, text) {
+    let index = 0;
+
+    let interval = setInterval(() => {
+        if (index < text.length) {
+            element.innerHTML += text.charAt(index);
+            index++;
+        } else {
+            clearInterval(interval);
+        }
+    }, 20);
+}
+
+// Function to generate a unique ID for each bot reply
+function generateUniqueId() {
+    const timestamp = Date.now();
+    const randomNumber = Math.random();
+    const hexadecimalString = randomNumber.toString(16);
+
+    return `id-${timestamp}-${hexadecimalString}`;
+}
+
+// Function to create the HTML structure for a chat message
+function chatStripe(isAi, value, uniqueId) {
+    return (
+        `
+        <div class="wrapper ${isAi && 'ai'}">
+            <div class="chat">
+                <div class="profile">
+                    <img 
+                      src=${isAi ? bot : user} 
+                      alt="${isAi ? 'bot' : 'user'}" 
+                    />
+                </div>
+                <div class="message" id=${uniqueId}>${value}</div>
+            </div>
+        </div>
+    `
+    );
+}
+
+// Event handler for form submission
+const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const data = new FormData(form);
+
+    // Display the user's chat message
+    chatContainer.innerHTML += chatStripe(false, data.get('prompt'));
+
+    // Clear the textarea input
+    form.reset();
+
+    // Display a loading message for the bot's reply
+    const uniqueId = generateUniqueId();
+    chatContainer.innerHTML += chatStripe(true, " ", uniqueId);
+
+    // Scroll to the bottom of the chat container
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    // Get the specific message div
+    const messageDiv = document.getElementById(uniqueId);
+
+    // Display a loading animation
+    loader(messageDiv);
+
+    // Send a request to the server to get the bot's reply
+    const response = await fetch('https://codex-gpt-ymck.onrender.com', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            prompt: data.get('prompt'),
+        }),
+    });
+
+    clearInterval(loadInterval);
+    messageDiv.innerHTML = " ";
+
+    if (response.ok) {
+        const data = await response.json();
+        const parsedData = data.bot.trim(); // Remove any trailing spaces or newline characters
+        
+        // Type out the bot's reply with a typewriter effect
+        typeText(messageDiv, parsedData);
+    } else {
+        const err = await response.text();
+
+        messageDiv.innerHTML = "Something went wrong";
+        alert(err);
+    }
+};
+
+// Add event listeners for form submission and Enter key press
+form.addEventListener('submit', handleSubmit);
+form.addEventListener('keyup', (e) => {
+    if (e.keyCode === 13) {
+        handleSubmit(e);
+    }
+});
+------------------------------------------------HTML
+
+<!DOCTYPE html> <!-- Document type declaration indicating HTML5 format -->
+<html lang="en"> <!-- Start of the HTML document, with language set to English -->
+  <head>
+    <meta charset="UTF-8" /> <!-- Specify character encoding for the document -->
+    <link rel="icon" type="image/svg+xml" href="favicon.ico" /> <!-- Set the favicon for the page -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Set viewport settings for responsive design -->
+    <title>Codex - Your AI</title> <!-- Title of the page shown in the browser tab -->
+    <link rel="stylesheet" href="style.css" /> <!-- Link to an external stylesheet named 'style.css' -->
+  </head>
+  <body> <!-- Start of the HTML body content -->
+    <div id="app"> <!-- Div element with an id of 'app', used as a container for the chat interface -->
+      <div id="chat_container"></div> <!-- Empty div element with an id of 'chat_container', where chat messages will be displayed -->
+
+      <form> <!-- Start of a form element -->
+        <textarea name="prompt" rows="1" cols="1" placeholder="Ask codex..."></textarea> <!-- Textarea input for user to input their message -->
+        <button type="submit"><img src="assets/send.svg" alt="send" /> <!-- Submit button with an image of a send icon -->
+      </form>
+    </div> <!-- End of the 'app' container div -->
+
+    <script type="module" src="script.js"></script> <!-- Link to an external JavaScript file named 'script.js' -->
+  </body> <!-- End of the HTML body content -->
+</html> <!-- End of the HTML document -->
+-----------------------------------------------------------CSS
+/* Import Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@100;300;400;500;700;800;900&display=swap");
+
+/* Reset default styles and set global font */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Alegreya Sans", sans-serif; /* Set the font for the entire page */
+}
+
+/* Set background color for the body */
+body {
+  background: #343541;
+}
+
+/* Styling for the main app container */
+#app {
+  width: 100vw; /* Full viewport width */
+  height: 100vh; /* Full viewport height */
+  background: #343541;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Styling for the chat container */
+#chat_container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll; /* Enable vertical scrollbar if content overflows */
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  -ms-overflow-style: none; /* Hide scrollbar in IE and Edge */
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+  
+  padding-bottom: 20px;
+  scroll-behavior: smooth; /* Enable smooth scrolling behavior */
+}
+
+/* Hide the scrollbar */
+#chat_container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Styling for chat message wrapper */
+.wrapper {
+  width: 100%;
+  padding: 15px;
+}
+
+/* Styling for AI messages */
+.ai {
+  background: #40414F;
+}
+
+/* Styling for chat message container */
+.chat {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* Styling for profile icon */
+.profile {
+  width: 36px;
+  height: 36px;
+  border-radius: 5px;
+
+  background: #5436DA;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Styling for AI profile icon */
+.ai .profile {
+  background: #10a37f;
+}
+
+/* Styling for profile icon image */
+.profile img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+/* Styling for chat messages */
+.message {
+  flex: 1;
+
+  color: #dcdcdc;
+  font-size: 20px;
+
+  max-width: 100%;
+  overflow-x: scroll;
+
+  white-space: pre-wrap; /* Preserve line breaks and wrap text */
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Hide the scrollbar */
+.message::-webkit-scrollbar {
+  display: none;
+}
+
+/* Styling for the form */
+form {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 10px;
+  background: #40414F;
+
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+/* Styling for the textarea input */
+textarea {
+  width: 100%;
+
+  color: #fff;
+  font-size: 18px;
+
+  padding: 10px;
+  background: transparent;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+}
+
+/* Styling for the submit button */
+button {
+  outline: 0;
+  border: 0;
+  cursor: pointer;
+  background: transparent;
+}
+
+/* Styling for the button icon */
+form img {
+  width: 30px;
+  height: 30px;
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                STOCK CRASH ALARM
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Importing required libraries                                        SERVER
+const express = require("express");
+const { default: puppeteer } = require("puppeteer");
+const nodemailer = require('nodemailer');
+const cron = require('node-cron');
+const ehbs = require('nodemailer-express-handlebars')
+const path = require('path');
+require('dotenv').config()
+const bodyparser = require('body-parser')
+const mongoose = require('mongoose');
+const users = require('./models/schema')
+
+// Initializing the Express app
+const app = express();
+const port = process.env.PORT || 80;
+
+// Configuring view engine and middleware
+app.set('views', path.join(__dirname,'/views'));    
+app.use(bodyparser.urlencoded({ extended: false }));
+app.use(express.json());
+app.set('view engine', 'hbs');
+app.use(express.static('public'));
+
+// Connecting to MongoDB
+mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true })
+.then(() => {
+    console.log("Database Connected!")
+})
+.catch((err) => {
+    console.log(err);
+});
+
+// Setting Routes
+
+// Home route
+app.get('/', (req, res) => {
+    res.render('index');
+});
+
+// Home route
+app.get('/home', (req, res) => {
+    res.render('index');
+});
+
+// Handling form submission
+app.post('/', (req, res) => {
+    // Extracting user's name and email from the form
+    const userName = req.body.name;
+    const userEmail = req.body.email;
+
+    // Creating a new user object and saving it to the database
+    const user = new users({
+        name: userName,
+        email: userEmail
+    });
+
+    user.save((err, doc) => {
+        if (!err) {
+            res.render('subscribed');
+        } else {
+            console.log("Error is : " + err);
+        }
+    });
+});
+
+// Unsubscribe route
+app.get('/unsubscribe', (req, res) => {
+    res.render('unsubscribe');
+});
+
+// Handling unsubscribe form submission
+app.post('/unsubscribe', (req, res) => {
+    const email = req.body.email;
+
+    // Deleting the user with the specified email from the database
+    users.deleteOne({ email: email }, (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(email + " Unsubscribed successfully");
+            res.render('index');
+        }
+    });
+});
+
+// Fetching users from the database
+users.find({}, function(err, users) {
+    if (err) {
+        console.error(err);
+    } else {
+        const nameList = [];
+        const emailList = [];
+
+        users.forEach(function(user) {
+            nameList.push(user.name);
+            emailList.push(user.email);
+        });
+
+        console.log("Name list:", nameList);
+        console.log("Email list:", emailList);
+    }
+});
+
+// Scheduling a cron job
+cron.schedule('30 10,14 * * *', async () => {
+    // Running a web scraping function
+    scrapChannel('https://groww.in/markets/top-losers?index=GIDXNIFTY100');
+});
+
+// Variable to store scraped data
+var StockApi;
+
+// Web scraping function
+async function scrapChannel(url) {
+    // Launching a headless browser instance with Puppeteer
+    const browser = await puppeteer.launch({
+        executablePath: '/usr/bin/chromium-browser',
+        headless: true,
+        args: ['--no-sandbox']
+    });
+    const page = await browser.newPage();
+    await page.goto(url);
+
+    // Scraping relevant data from the webpage using XPath
+
+    // Element 1: Stock Name
+    const [el] = await page.$x('/html/body/div/div[2]/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[1]/td[1]/a');
+    const text = await el.getProperty('textContent');
+    const stockName = await text.jsonValue();
+
+    // Element 2: Stock Price
+    const [el2] = await page.$x('/html/body/div/div[2]/div[2]/div[2]/div/div/div[1]/div/div/table/tbody/tr[1]/td[3]/text()');
+    const priceSrc = await el2.getProperty('textContent');
+    const priceVal = await priceSrc.jsonValue();
+
+    // ... (similarly scraping other data elements)
+
+    // Sending an email if a certain condition is met
+    if (true) {  // condition to send email, e.g., percentage * 100 < 1000
+        // Function to send an email
+        function sendMail() {
+            // Creating a transporter for nodemailer
+            const mailTransporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.GID,
+                    pass: process.env.GPW
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            });
+
+            // Configuring Handlebars for email templates
+            const handlebarOptions = {
+                // ...
+            };
+            mailTransporter.use('compile', ehbs(handlebarOptions));
+
+            // Fetching user data from the database
+            users.find({}, function(err, users) {
+                // ...
+                for (let i = 0; i < nameList.length; i++) {
+                    // Creating and sending email to each user
+                    const mailOptions = {
+                        // ...
+                    };
+                    mailTransporter.sendMail(mailOptions, function(error, info) {
+                        // ...
+                    });
+                }
+            });
+        }
+
+        sendMail();
+    }
+    
+    // ... (other processing)
+
+    // Closing the browser instance
+    browser.close();
+}
+
+// Initiating web scraping on server start
+scrapChannel('https://groww.in/markets/top-losers?index=GIDXNIFTY100');
+// scrapChannel('https://groww.in/markets/52-week-high?index=GIDXNIFTY500');
+
+// Starting the Express server
+app.listen(port, () => {
+    console.log(`Server is listening at port ${port}`);
+});
+------------------------------------------------------------ index
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Set the character encoding for the document -->
+	<meta charset="UTF-8">
+    <!-- Define how the browser should handle compatibility with Internet Explorer -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Set the viewport to control the page's dimensions on different devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Set the favicon (browser tab icon) -->
+	<link rel="shortcut icon" href="../public/img/favicon.png" type="image/x-icon">
+    <!-- Set the title of the webpage -->
+    <title>Stock Crash Notifier</title>
+    <!-- Preconnect to Google Fonts for faster font loading -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Include the Google Fonts "Poppins" -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+	<style>
+        /* Define CSS styles for the webpage */
+		* {
+			box-sizing: border-box;
+            scroll-behavior: smooth;
+		}
+
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: 'Poppins', sans-serif;
+		}
+
+		.container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+		}
+
+		.input-form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			background-color: #f2f2f2;
+			padding: 20px;
+			border-radius: 10px;
+			margin-bottom: 20px;
+			max-width: 500px;
+			width: 100%;
+		}
+
+		.user-i {
+			padding: 10px;
+			margin: 10px;
+			border-radius: 5px;
+			border: none;
+			width: 100%;
+			max-width: 400px;
+		}
+
+		.btn-1 {
+            display: block;
+            margin: 5px auto;
+            
+            font-family: 'Poppins', sans-serif;
+            border: 1px solid #08473a;
+            border-radius: 5px;
+			background-color: #0abb92;
+		
+
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+		}
+        .btn-1:hover {
+            background-color: #068265;
+        }
+
+		.footer {
+			display: flex;
+			justify-content: center;
+			background-color: #333;
+			color: #fff;
+            padding-top: 10px;
+			position: absolute;
+            height: 6vh;
+			bottom: 0;
+			width: 100%;
+		}
+
+		.footer__copy {
+			margin: 0;
+		}
+
+		.btn-2 {
+			margin-left: 10px;
+			color: #4CAF50;
+			text-decoration: none;
+			border-bottom: 1px dotted #4CAF50;
+			cursor: pointer;
+		}
+
+		@media only screen and (min-width: 768px) {
+			.container {
+				flex-direction: row;
+			}
+
+			.input-form {
+				margin-right: 20px;
+			}
+
+			.footer {
+				position: relative;
+			}    
+            .btn-1:hover {
+            background-color: #068265;
+        }
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="input-form">
+			<h2>Stock Crash Notifier: Stay Ahead of the Game with Real-Time Alerts</h2>
+			<h4>When any stock crashes from NIFTY-50, you will recieve an Email update</h4>
+			<form action="/" method="post">
+				<input class="user-i" type="text" name="name" id="" placeholder="Enter your name" autocomplete="off" required>
+				<input class="user-i" type="email" name="email" id="" placeholder="Enter your Email" required>
+				<button class="btn-1" type="submit">Subscribe</button>
+                
+			</form>
+		</div>
+	</div>
+    <footer class="footer">
+        <p class="footer__copy">&#169; Pushkar Helge, All rights reserved.</p>
+        <a class="btn-2" href="/unsubscribe">Unsubscribe</a>
+    </footer>
+</body>
+</html>
+----------------------------------------------------------------------------  sybscribed
+<!-- Declare the document type and set the language to English -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Set the character encoding for the document -->
+    <meta charset="UTF-8">
+    <!-- Define how the browser should handle compatibility with Internet Explorer -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Set the viewport to control the page's dimensions on different devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Set the favicon (browser tab icon) -->
+    <link rel="shortcut icon" href="../public/img/favicon.png" type="image/x-icon">
+    <!-- Set the title of the webpage -->
+    <title>Subscribed</title>
+    <!-- Preconnect to Google Fonts for faster font loading -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Include the Google Fonts "Poppins" -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+    <style>
+        /* Start defining CSS styles for the webpage */
+        /* Reset default margin and padding */
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        /* Enable smooth scrolling on the page */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Set font and text alignment for the body */
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+
+        /* Style for the navigation bar */
+        .navbar {
+            background-color: #000000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+
+        /* Style for navigation bar list */
+        .navbar ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+
+        /* Style for navigation bar list items */
+        .navbar li {
+            margin: 0.6rem;
+            font-size: 20px;
+        }
+
+        /* Style for navigation bar links */
+        .navbar li a {
+            padding: 3px 13px;
+            text-decoration: none;
+            color: white;
+        }
+
+        /* Style for navigation bar links on hover */
+        .navbar li a:hover {
+            color: rgb(238, 159, 84);
+        }
+
+        /* Style for the search container */
+        .search {
+            position: absolute;
+            right: 10px;
+            color: white;
+        }
+
+        /* Style for the search input */
+        #search {
+            font-family: 'Poppins', sans-serif;
+            width: 80%;
+            height: 5vh;
+            border-radius: 5px;
+        }
+
+        /* Center the placeholder text in the search input */
+        input[type="text"]::placeholder {
+            text-align: center;
+        }
+
+        /* Responsive design for small screens */
+        @media screen and (max-width: 767px) {
+            /* Hide the search container on small screens */
+            .search {
+                color: white;
+                display: none;
+            }
+        }
+
+        /* Container */
+        /* Style for the main content container */
+        .container {
+            margin: 1rem auto;
+            text-align: center;
+        }
+
+        /* Responsive design for small screens */
+        @media screen and (max-width: 767px) {
+            /* Adjust margin for small screens */
+            .container {
+                margin: 1rem;
+            }
+        }
+
+        /* Style for the background image before the nav element */
+        nav::before {
+            content: "";
+            /* Set background image with Unsplash API */
+            background: url('https://source.unsplash.com/1600x900/?stocks') no-repeat center center/cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        /* Style for the message container */
+        .message {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+        }
+
+        /* Style for the message content */
+        .message__content {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2rem;
+            text-align: center;
+            max-width: 600px;
+            border-radius: 10px;
+            /* Apply slide-up animation */
+            animation: slide-up 1s ease-out;
+        }
+
+        /* Style for the message text */
+        .message__text {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Style for the message button */
+        .message__button {
+            background-color: #0069d9;
+            color: #fff;
+            border: none;
+            margin-bottom: 10px;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            /* Apply transition effect on button hover */
+            transition: background-color 0.2s ease-out;
+        }
+
+        /* Style for the message button on hover */
+        .message__button:hover {
+            background-color: #0051a8;
+        }
+
+        /* Responsive design for small screens */
+        @media screen and (max-width: 767px) {
+            /* Adjust background image size for small screens */
+            .message {
+                background-size: contain;
+            }
+
+            /* Adjust padding for small screens */
+            .message__content {
+                padding: 1rem;
+            }
+        }
+
+        /* Keyframes animation for slide-up effect */
+        @keyframes slide-up {
+            0% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Footer */
+        /* Style for the footer container */
+        .footer {
+            display: flex;
+            justify-content: center;
+            background-color: #333;
+            color: #fff;
+            position: absolute;
+            padding-top: 8px;
+            bottom: 0;
+            height: 5vh;
+            width: 100%;
+        }
+
+        /* Style for the footer copyright text */
+        .footer__copy {
+            margin: 0;
+        }
+
+        /* Style for the "Unsubscribe" button */
+        .btn-2 {
+            margin-left: 10px;
+            color: #4CAF50;
+            text-decoration: none;
+            border-bottom: 1px dotted #4CAF50;
+            cursor: pointer;
+        }
+
+        /* Style for the "Unsubscribe" button on hover */
+        .btn-2:hover {
+            background-color: #068265;
+        }
+    </style>
+</head>
+
+<body
+------------------------------------------------------------  unsubsribed
+<!-- Declare the document type and set the language to English -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Set the character encoding for the document -->
+    <meta charset="UTF-8">
+    <!-- Define how the browser should handle compatibility with Internet Explorer -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Set the viewport to control the page's dimensions on different devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Set the favicon (browser tab icon) -->
+    <link rel="shortcut icon" href="../public/img/favicon.png" type="image/x-icon">
+    <!-- Set the title of the webpage -->
+    <title>Unsubscribe</title>
+    <!-- Preconnect to Google Fonts for faster font loading -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Include the Google Fonts "Poppins" -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+    <style>
+        /* Start defining CSS styles for the webpage */
+        /* Reset default margin and padding */
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        /* Enable smooth scrolling on the page */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Set font and text alignment for the body */
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+
+        /* Style for the navigation bar */
+        .navbar {
+            background-color: #000000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+
+        /* Style for navigation bar list */
+        .navbar ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+
+        /* Style for navigation bar list items */
+        .navbar li {
+            margin: 0.6rem;
+            font-size: 20px;
+        }
+
+        /* Style for navigation bar links */
+        .navbar li a {
+            padding: 3px 13px;
+            text-decoration: none;
+            color: white;
+        }
+
+        /* Style for navigation bar links on hover */
+        .navbar li a:hover {
+            color: rgb(238, 159, 84);
+        }
+
+        /* Style for the search container */
+        .search {
+            position: absolute;
+            right: 10px;
+            color: white;
+        }
+
+        /* Style for the search input */
+        #search {
+            font-family: 'Poppins', sans-serif;
+            width: 80%;
+            height: 5vh;
+            border-radius: 5px;
+        }
+
+        /* Center the placeholder text in the search input */
+        input[type="text"]::placeholder {
+            text-align: center;
+        }
+
+        /* Responsive design for small screens */
+        @media screen and (max-width: 767px) {
+            /* Hide the search container on small screens */
+            .search {
+                color: white;
+                display: none;
+            }
+        }
+
+        /* Container */
+        /* Style for the main content container */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10%;
+        }
+
+        /* Style for the email input */
+        .user-i {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        /* Style for the "Unsubscribe" button */
+        .btn-1 {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            /* Apply transition effect on button hover */
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        /* Style for the "Unsubscribe" button on hover */
+        .btn-1:hover {
+            background-color: #0062cc;
+        }
+
+        /* Responsive design for medium screens and above */
+        @media (min-width: 768px) {
+            /* Adjust layout for medium screens */
+            .container {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            /* Margin for email input and button on medium screens */
+            .user-i {
+                margin-right: 1rem;
+            }
+            .btn-1 {
+                margin-left: 1rem;
+            }
+        }
+
+        /* Footer */
+        /* Style for the footer container */
+        .footer {
+            display: flex;
+            justify-content: center;
+            background-color: #333;
+            color: #fff;
+            position: absolute;
+            bottom: 0;
+            padding-top: 8px;
+            height: 5vh;
+            width: 100%;
+        }
+
+        /* Style for the footer copyright text */
+        .footer__copy {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <ul>
+            <li><a href="/home">Home</a></li>
+            <li><a href="">About</a></li>
+            <li><a href="">Services</a></li>
+            <li><a href="">Contact us</a></li>
+            <div class="search">
+                <input type="text" name="search" id="search" placeholder="Search Stock">
+            </div>
+        </ul>
+    </nav>
+
+    <!-- Unsubscribe Form -->
+    <div class="container">
+        <form action="/unsubscribe" method="post">
+            <!-- Email input field -->
+            <input class="user-i" type="email" name="email" id="email" placeholder="Enter your Email" required>
+            <!-- Unsubscribe button -->
+            <button class="btn-1" type="submit">Unsubscribe</button>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <!-- Copyright information -->
+        <p class="footer__copy">&#169; Pushkar Helge, All rights reserved. </p>
+    </footer>
+
+</body>
+
+</html>
+-------------------------------------------------------------------email
+<!-- Declare the document type -->
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Set the character encoding for the document -->
+    <meta charset="UTF-8">
+    <!-- Define how the browser should handle compatibility with Internet Explorer -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Set the viewport to control the page's dimensions on different devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Set the title of the webpage with a dynamic variable -->
+    <title>Market Update: {{name}} Update</title>
+    <!-- Preconnect to Google Fonts for faster font loading -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Include the Google Fonts "Poppins" -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <!-- Start defining CSS styles for the webpage -->
+    <style>
+        /* Set font and background for the body */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        /* Style for the main content container */
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Style for the main heading */
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 0;
+        }
+
+        /* Style for the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        /* Style for table header cells and data cells */
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Style for table header cells */
+        th {
+            background-color: #f2f2f2;
+            font-weight: normal;
+        }
+
+        /* Style for buttons */
+        .btn {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px;
+            background-color:  #0abb92;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            width: 200px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Style for buttons on hover */
+        .btn:hover {
+            background-color: #1cd2a7;
+        }
+
+        /* Style for the unsubscribe information */
+        .un-sub {
+            font-size: 0.65rem;
+            text-align: center;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main content container -->
+    <div class="container">
+        <!-- Greeting with a dynamic variable -->
+        <h2>Dear {{userN}},</h2>
+        <!-- Market update information -->
+        <h4>Here's the latest market update on {{name}} for today:</h4>
+        <!-- Table to display stock information -->
+        <table>
+            <tr>
+                <th>Stock Name:</th>
+                <td><strong>{{name}}</strong></td>
+            </tr>
+            <tr>
+                <th>Price Change:</th>
+                <td style="color: red;">{{pct}} (%)</td>
+            </tr>
+            <tr>
+                <th>Current Market Price:</th>
+                <td>{{currentPrice}}</td>
+            </tr>
+            <tr>
+                <th>52 Week Low:</th>
+                <td>{{lowPrice}}</td>
+            </tr>
+            <tr>
+                <th>52 Week High:</th>
+                <td>{{highPrice}}</td>
+            </tr>
+            <tr>
+                <td colspan="2"><a class="btn" href="http://www.groww.in/stocks" style="color: white;">Buy {{name}}</a></td>
+            </tr>
+        </table>
+        <!-- Additional market update information -->
+        <p>Please note that {{name}} has experienced a {{pct}}% change today, with the current market price at {{currentPrice}}.</p>
+    </div>
+    <!-- Unsubscribe information and link -->
+    <p class="un-sub">If you wish to unsubscribe from our mails <a href="/unsubscribe">Click Here</a></p>
+</body>
+</html>
+-----------------------------------------------------------models
+// Import the 'mongoose' module
+const mongoose = require('mongoose');
+
+// Turn off strict mode for queries
+mongoose.set('strictQuery', false);
+
+// Create a new instance of a mongoose schema
+// 'schema' here refers to the Schema class from the mongoose module
+var schema = mongoose.Schema;
+
+// Define the structure of the 'user' schema
+let userSchema = new schema({
+    // Define the 'name' field with String type and required constraint
+    name : {
+        type : String,
+        required : true
+    },
+    // Define the 'email' field with String type and required constraint
+    email : {
+        type : String,
+        required : true
+    },
+    // Define the 'entryDate' field with Date type and default value set to the current date
+    entryDate : {
+        type : Date,
+        default : Date.now
+    }
+});
+
+// Create a mongoose model using the 'userSchema'
+// 'users' is the name of the collection, and 'userSchema' is the schema used for this collection
+let users = mongoose.model('users', userSchema, 'users');
+
+// Export the 'users' model to be used in other parts of the application
+module.exports = users;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                           CHAtify
+---------------------------------------------------------------------------------------------------     SERVER                  
+// Import required modules
+const express = require("express");
+const path = require("path");
+const http = require("http");
+const socketio = require("socket.io");
+const messageBox = require("./utils/messages");
+const {
+  userJoin,
+  getCurrentuser,
+  userLeave,
+  getRoomUsers,
+} = require("./utils/users");
+
+// Create an Express app
+const app = express();
+const server = http.createServer(app);
+
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, "public")));
+
+// Create a Socket.IO instance
+const io = socketio(server);
+
+// Socket.IO event handling
+io.on("connection", (socket) => {
+  // When a user joins a room
+  socket.on("joinroom", ({ username, room }) => {
+    // Add the user to the room
+    const user = userJoin(username, room, socket.id);
+    socket.join(user.room);
+
+    // Send a welcome message to the user
+    socket.emit("message", messageBox("ChatBot", "Welcome to ChatCord"));
+
+    // Broadcast to others in the room that a user has joined
+    socket.broadcast
+      .to(user.room)
+      .emit(
+        "message",
+        messageBox("ChatBot", `${user.username} has joined the chat.`)
+      );
+
+    // Emit updated room user list to everyone in the room
+    io.to(user.room).emit("roomUsers", {
+      room: user.room,
+      users: getRoomUsers(user.room),
+    });
+  });
+
+  // When a user sends a chat message
+  socket.on("chatMessage", (msg) => {
+    // Get the current user
+    const user = getCurrentuser(socket.id);
+
+    // Emit the message to everyone in the room
+    io.to(user.room).emit("message", messageBox(user.username, msg));
+  });
+
+  // When a user disconnects
+  socket.on("disconnect", () => {
+    // Get the user that left
+    const user = userLeave(socket.id);
+    if (user) {
+      // Notify the room that the user has left
+      io.to(user.room).emit(
+        "message",
+        messageBox("ChatBot", `${user.username} has left the chat room.`)
+      );
+
+      // Emit updated room user list to everyone in the room
+      io.to(user.room).emit("roomUsers", {
+        room: user.room,
+        users: getRoomUsers(user.room),
+      });
+    }
+  });
+});
+
+// Set the port for the server
+const port = 3000 || process.env.PORT;
+
+// Start the server
+server.listen(port, () => {
+  console.log(`server started on port ${port}`);
+});
+------------------------------------------------INDEX
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Metadata for rendering in different devices -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <!-- Link to Font Awesome for icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous"
+    />
+    <!-- Link to the custom CSS file -->
+    <link rel="stylesheet" href="css/style.css" />
+    <!-- Title of the webpage -->
+    <title>ChatCord App</title>
+</head>
+<body>
+    <!-- Container for the join form -->
+    <div class="join-container">
+        <!-- Header section with the ChatCord title -->
+        <header class="join-header">
+            <h1><i class="fas fa-smile"></i> ChatCord</h1>
+        </header>
+        <!-- Main section of the join form -->
+        <main class="join-main">
+            <!-- Form for entering username and selecting room -->
+            <form action="chat.html">
+                <!-- Form control for entering username -->
+                <div class="form-control">
+                    <label for="username">Username</label>
+                    <!-- Input field for username entry -->
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        placeholder="Enter username..."
+                        required
+                    />
+                </div>
+                <!-- Form control for selecting room -->
+                <div class="form-control">
+                    <label for="room">Room</label>
+                    <!-- Dropdown select for room selection -->
+                    <select name="room" id="room">
+                        <option value="JavaScript">JavaScript</option>
+                        <option value="Python">Python</option>
+                        <option value="PHP">PHP</option>
+                        <option value="C#">C#</option>
+                        <option value="Ruby">Ruby</option>
+                        <option value="Java">Java</option>
+                    </select>
+                </div>
+                <!-- Button to join the chat -->
+                <button type="submit" class="btn">Join Chat</button>
+            </form>
+        </main>
+    </div>
+</body>
+</html>
+---------------------------------------------------------CHAT
+<!DOCTYPE html> 
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Metadata for rendering in different devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Link to Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+      integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+      crossorigin="anonymous"
+    />
+    <!-- Link to the custom CSS file -->
+    <link rel="stylesheet" href="css/style.css" />
+    <!-- Title of the webpage -->
+    <title>ChatCord App</title>
+  </head>
+  <body>
+    <!-- Container for the chat interface -->
+    <div class="chat-container">
+      <!-- Header section with the ChatCord title and Leave Room button -->
+      <header class="chat-header">
+        <h1><i class="fas fa-smile"></i> ChatCord</h1>
+        <a href="index.html" id="leave-btn" class="btn">Leave Room</a>
+      </header>
+      <!-- Main section for displaying chat messages and user list -->
+      <main class="chat-main">
+        <!-- Sidebar for room information and user list -->
+        <div class="chat-sidebar">
+          <h3><i class="fas fa-comments"></i> Room Name:</h3>
+          <h2 id="room-name"></h2>
+          <h3><i class="fas fa-users"></i> Users</h3>
+          <ul id="users"></ul>
+        </div>
+        <!-- Container for displaying chat messages -->
+        <div class="chat-messages">
+          <!-- Messages will be added dynamically here -->
+        </div>
+      </main>
+      <!-- Form container for sending messages -->
+      <div class="chat-form-container">
+        <form id="chat-form">
+          <!-- Input field for typing messages -->
+          <input
+            id="msg"
+            type="text"
+            placeholder="Enter Message"
+            required
+            autocomplete="off"
+          />
+          <!-- Button for sending messages -->
+          <button class="btn"><i class="fas fa-paper-plane"></i> Send</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- External JavaScript libraries and scripts -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.2/qs.min.js"
+      integrity="sha256-TDxXjkAUay70ae/QJBEpGKkpVslXaHHayklIVglFRT4="
+      crossorigin="anonymous"
+    ></script>
+    <!-- Socket.io library for real-time communication -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Main JavaScript file for handling chat functionality -->
+    <script src="js/main.js"></script>
+  </body>
+</html>
+-------------------------------------------------------MAIN
+// Create a socket connection to the server
+const socket = io();
+
+// Get DOM elements
+const chatForm = document.getElementById('chat-form');
+const roomName = document.getElementById('room-name');
+const usersList = document.getElementById('users');
+
+// Parse username and room from the URL using Qs library
+const { username, room } = Qs.parse(location.search, {
+  ignoreQueryPrefix: true
+});
+
+// Log the parsed username and room
+console.log(username, room);
+
+// Emit 'joinroom' event to the server with username and room
+socket.emit('joinroom', { username, room });
+
+// Listen for 'roomUsers' event from the server
+socket.on('roomUsers', ({ users, room }) => {
+  // Update the room name and user list
+  outputRoomName(room);
+  outputUsers(users);
+});
+
+// Get the DOM element for displaying chat messages
+const chatMessages = document.querySelector('.chat-messages');
+
+// Listen for 'message' event from the server
+socket.on('message', (message) => {
+  // Log the received message
+  console.log(message);
+  // Display the message
+  outputMessage(message);
+  // Scroll to the bottom of the chat messages
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+
+// Listen for form submit event
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  // Get the message text from the input field
+  const msg = e.target.elements.msg.value;
+  // Emit 'chatMessage' event to the server with the message
+  socket.emit('chatMessage', msg);
+  // Clear the input field and focus on it
+  e.target.elements.msg.value = '';
+  e.target.elements.msg.focus();
+});
+
+// Function to display a message in the chat
+function outputMessage(message) {
+  const div = document.createElement('div');
+  div.classList.add('message');
+  div.innerHTML = `<p class="meta">${message.username}<span>${message.time}</span></p>
+  <p class="text">${message.text}</p>`;
+  document.querySelector('.chat-messages').appendChild(div);
+}
+
+// Function to update the room name
+function outputRoomName(room) {
+  roomName.innerText = room;
+}
+
+// Function to update the list of users in the room
+function outputUsers(users) {
+  usersList.innerHTML = `${users.map((user) => `<li>${user.username}</li>`).join('')}`;
+}
+--------------------------------------------------------------- CSS
+/* Import the Roboto font from Google Fonts */
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+
+/* Define color variables using CSS custom properties */
+:root {
+	--dark-color-a: #667aff;
+	--dark-color-b: #7386ff;
+	--light-color: #e6e9ff;
+	--success-color: #5cb85c;
+	--error-color: #d9534f;
+}
+
+/* Reset default styles for all elements */
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+/* Apply styles to the entire body */
+body {
+	font-family: 'Roboto', sans-serif;
+	font-size: 16px;
+	background: var(--light-color);
+	margin: 20px;
+}
+
+/* Remove default list styles */
+ul {
+	list-style: none;
+}
+
+/* Remove default link text decoration */
+a {
+	text-decoration: none;
+}
+
+/* Define common button styles */
+.btn {
+	cursor: pointer;
+	padding: 5px 15px;
+	background: var(--light-color);
+	color: var(--dark-color-a);
+	border: 0;
+	font-size: 17px;
+}
+
+/* Styles for the Chat Page */
+.chat-container {
+	max-width: 1100px;
+	background: #fff;
+	margin: 30px auto;
+	overflow: hidden;
+}
+
+.chat-header {
+	background: var(--dark-color-a);
+	color: #fff;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	padding: 15px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.chat-main {
+	display: grid;
+	grid-template-columns: 1fr 3fr;
+}
+
+.chat-sidebar {
+	background: var(--dark-color-b);
+	color: #fff;
+	padding: 20px 20px 60px;
+	overflow-y: scroll;
+}
+
+.chat-sidebar h2 {
+	font-size: 20px;
+	background: rgba(0, 0, 0, 0.1);
+	padding: 10px;
+	margin-bottom: 20px;
+}
+
+.chat-sidebar h3 {
+	margin-bottom: 15px;
+}
+
+.chat-sidebar ul li {
+	padding: 10px 0;
+}
+
+.chat-messages {
+	padding: 30px;
+	max-height: 500px;
+	overflow-y: scroll;
+}
+
+.chat-messages .message {
+	padding: 10px;
+	margin-bottom: 15px;
+	background-color: var(--light-color);
+	border-radius: 5px;
+	overflow-wrap: break-word;
+}
+
+.chat-messages .message .meta {
+	font-size: 15px;
+	font-weight: bold;
+	color: var(--dark-color-b);
+	opacity: 0.7;
+	margin-bottom: 7px;
+}
+
+.chat-messages .message .meta span {
+	color: #777;
+}
+
+.chat-form-container {
+	padding: 20px 30px;
+	background-color: var(--dark-color-a);
+}
+
+.chat-form-container form {
+	display: flex;
+}
+
+.chat-form-container input[type='text'] {
+	font-size: 16px;
+	padding: 5px;
+	height: 40px;
+	flex: 1;
+}
+
+/* Styles for smaller screens using media queries */
+@media (max-width: 700px) {
+	.chat-main {
+		display: block;
+	}
+
+	.chat-sidebar {
+		display: none;
+	}
+}
+------------------------------------------------- USER
+// Create an array to store user information
+const users = [];
+
+// Function to add a user to the users array
+function userJoin(username, room, id) {
+    const user = { username, room, id };
+    users.push(user);
+    return user;
+}
+
+// Function to get the current user based on their ID
+function getCurrentuser(id) {
+    return users.find(user => user.id === id);
+}
+
+// Function to remove a user from the users array when they leave
+function userLeave(id) {
+    // Find the index of the user with the specified ID
+    const index = users.findIndex(user => user.id === id);
+    
+    // Check if the user was found
+    if (index !== -1) {
+        // Remove the user from the array and return the removed user
+        return users.splice(index, 1)[0];
+    }
+}
+
+// Function to get all users in a specific room
+function getRoomUsers(room) {
+    // Filter the users array to find users in the specified room
+    return users.filter(user => user.room === room);
+}
+
+// Export the functions as an object to be used in other files
+module.exports = {
+    userJoin,
+    getCurrentuser,
+    userLeave,
+    getRoomUsers
+};
+-----------------------------------------------MESSAGE
+// Import the 'moment' library to work with timestamps
+const moment = require('moment');
+
+// Define a function 'messageBox' that takes a username and text as arguments
+function messageBox(username, text) {
+    // Return an object containing the username, text, and the formatted current timestamp
+    return {
+        username,                    // Username of the sender
+        text,                        // Text content of the message
+        time: moment().format("YYYY:MM:DD h:mm a")   // Current timestamp in the specified format
+    };
+}
+
+// Export the 'messageBox' function to make it available to other parts of the application
+module.exports = messageBox;
+---------------------------------------
+
