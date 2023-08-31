@@ -1,7 +1,6 @@
   TALK Ai
   ------------------------------------ SERVER
-  // Import required modules and packages using ES6 import statements
-import express from 'express'; // Import Express.js framework
+  // Import required modules and packages using ES6 import statements`	 import express from 'express'; // Import Express.js framework
 import * as dotenv from 'dotenv'; // Import dotenv for environment variables
 import cors from 'cors'; // Import CORS middleware
 import { Configuration, OpenAIApi } from 'openai'; // Import Configuration and OpenAIApi from the 'openai' package
@@ -327,7 +326,7 @@ body {
   max-width: 100%;
   overflow-x: scroll;
 
-  white-space: pre-wrap; /* Preserve line breaks and wrap text */
+  white-space: pre-wrap; /* Preserve wrap text */
 
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -413,15 +412,8 @@ mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true })
     console.log(err);
 });
 
-// Setting Routes
-
-// Home route
+// 
 app.get('/', (req, res) => {
-    res.render('index');
-});
-
-// Home route
-app.get('/home', (req, res) => {
     res.render('index');
 });
 
@@ -716,7 +708,7 @@ app.listen(port, () => {
     </footer>
 </body>
 </html>
-----------------------------------------------------------------------------  sybscribed
+----------------------------------------------------------------------------  subscribed
 <!-- Declare the document type and set the language to English -->
 <!DOCTYPE html>
 <html lang="en">
@@ -1566,7 +1558,7 @@ server.listen(port, () => {
     <script src="js/main.js"></script>
   </body>
 </html>
--------------------------------------------------------MAIN
+-------------------------------------------------------MAIN(chat)
 // Create a socket connection to the server
 const socket = io();
 
