@@ -138,40 +138,28 @@ class Solution
 
 
 //05. Move all negative numbers to beginning and positive to end with constant extra space    {T.C = O(N) ,S.C = O(1)}
-#include<iostream>
-using namespace std;
+void rearrangeArray(std::vector<int>& arr) {
+    int left = 0; // Pointer for the left end
+    int right = arr.size() - 1; // Pointer for the right end
 
-void swap(int &a,int &b){
-    int temp = a;
-    a = b ;
-    b = temp;
-}
-void reArrange(int arr[] , int &n){
-    int low = 0 ;
-    int high = n-1;
-    while(low < high){
-        if(arr[low] < 0){
-            low++;
-        }
-        else if(arr[high] > 0){
-            high--;
-        }
-        else{
-            swap(arr[low],arr[high]);
+    while (left <= right) {
+        if (arr[left] < 0 && arr[right] < 0) {
+            // Both elements are negative, move the left pointer to the right.
+            left++;
+        } else if (arr[left] > 0 && arr[right] < 0) {
+            // Left is positive, right is negative, so swap them.
+            std::swap(arr[left], arr[right]);
+            left++;
+            right--;
+        } else if (arr[left] > 0 && arr[right] > 0) {
+            // Both elements are positive, move the right pointer to the left.
+            right--;
+        } else {
+            // Left is negative, right is positive, move both pointers.
+            left++;
+            right--;
         }
     }
-}
-void displayArray(int arr[], int n){
-    for(int i = 0 ; i < n ; i++){
-        cout<<arr[i]<<" ";
-    }
-}
-int main(){
-    int arr[] = {5 , -3, 22 , -24 , 34 , 98 , -2};
-    int n = sizeof(arr)/sizeof(arr[0]);
-    reArrange(arr,n);
-    displayArray(arr,n);
-    
 }
 /*
 output
@@ -185,19 +173,19 @@ class Solution{
     public:
     //Function to return the count of number of elements in union of two arrays.
     int doUnion(int a[], int n, int b[], int m)  {
-        unordered_set<int>unionSet;
+        set<int>st;
         
         //insert element of 1st array into unionset/hash
         for(int i = 0 ; i < n ; i++){
-            unionSet.insert(a[i]);
+            s.insert(a[i]);
         }
         
         //insert element of 2nd array into unionset/hash
         for(int i  = 0 ; i < m ; i++){
-            unionSet.insert(b[i]);
+            s.insert(b[i]);
         }
         
-        return unionSet.size();
+        return s.size();
     }
 };
 /*
@@ -216,17 +204,17 @@ class Solution {
     // Function to return the count of the number of elements in
     // the intersection of two arrays.
     int NumberofElementsInIntersection(int a[], int b[], int n, int m) {
-        unordered_set<int>intersectionSet;
-        unordered_set<int>setA(a,a+n);
+        unordered_set<int>s;
+        unordered_set<int>A(a,a+n);
         
         //insert intersection of element of array in unordered set/hash
         for(int i = 0 ; i < m ; i++){
-            if(setA.count(b[i]) > 0){
-                intersectionSet.insert(b[i]);
+            if(A.count(b[i]) > 0){
+                s.insert(b[i]);
             }
         }
         
-        return intersectionSet.size();
+        return s.size();
     }
 };
 /*
@@ -298,14 +286,13 @@ class Solution {
     int getMinDiff(int arr[], int n, int k) {
         sort(arr,arr+n);
         int diff = arr[n-1]-arr[0];
-        int mini = 0;
-        int maxi = 0;
+    
         for(int i = 0 ; i < n ; i++){
             if(arr[i]-k < 0){
                 continue;
             }
-            maxi = max(arr[n-1]-k ,arr[i-1]+k);
-            mini = min(arr[0]+k , arr[i]-k);
+          int maxi = max(arr[n-1]-k ,arr[i-1]+k);
+           int mini = min(arr[0]+k , arr[i]-k);
             diff = min(diff,(maxi-mini));
         }
         return diff;
@@ -391,7 +378,7 @@ Output: 2
 */
 
 
-//12. MERGE 2 SORTED ARRAYS WITHOUT USING EXTRA SPACE                       {T.C = O(N+M(LOG(M+N))), S.C = O(1)}
+//12. MERGE 2 SORTED ARRAYS WITHOUT USING EXTRA SPACE   thoda alag h                    {T.C = O(N+M(LOG(M+N))), S.C = O(1)}
 class Solution{
     public:
         //Function to merge the arrays.
@@ -430,26 +417,21 @@ non-decreasing arrays, we get,
 //14. MERGE INTERVALS                                                  {T.C = O(NLOGN), S.C = O(N)}
 class Solution {
 public:
-    vector<vector<int>> merge(vector<vector<int>>& intervals) {
-        vector<vector<int>>ans;                //stores final merged intervals ans
-        //base case
-        if(intervals.size() == 0){
-            return ans;
-        }
-        //sort the intervals
-        sort(intervals.begin(), intervals.end());
-        vector<int>tempInterval = intervals[0];           //store temprory answer
-        for(auto i : intervals){
-            if(i[0] <= tempInterval[1]){
-                tempInterval[1] = max(i[1], tempInterval[1]);
-            }
-            else{
-                ans.push_back(tempInterval);
-                tempInterval = i;
+    vector<vector<int>> overlappedInterval(vector<vector<int>>& arr) {
+       
+        sort(arr.begin(), arr.end());
+
+        vector<vector<int>> ans;
+        ans.push_back(arr[0]);
+
+        for (int i = 1; i < arr.size(); i++) {
+            if (arr[i][0] <= ans.back()[1]) {
+                ans.back()[1] = max(arr[i][1], ans.back()[1]);
+            } else {
+                ans.push_back(arr[i]);
             }
         }
-        ans.push_back(tempInterval);
-        
+
         return ans;
     }
 };
@@ -498,7 +480,7 @@ Output: [1,3,2]
 */
 
 
-//16. COUNT INVERSION
+//16. COUNT INVERSION pair
 //BRUTE FORCE                                                           {T.C = O(N^2), S.C = O(1)}
 class Solution{
   public:
@@ -515,59 +497,7 @@ class Solution{
         return count;
     }
 };
-//OTPIMIZED APPROACH (MERGE SORT)                                       {T.C = O(N*LOGN), S.C = O(N)}
-// int cnt = 0;                             //not accepable to use global variable
-int merge(vector<int>&arr, int low , int mid , int high){                  
-    vector<int>temp;
-    int left = low;                               //[low -------mid]
-    int right = mid+1;                            //[mid+1 --- high]
 
-    //storing elements in the temporary array in sorted manner
-    int cnt = 0;
-    while(left <= mid && right <= high){
-        if(arr[left] <= arr[right]){
-            temp.push_back(arr[left]);
-            left++;
-        }
-        //right is smaller
-        else{
-            temp.push_back(arr[right]);
-            //extra line add to merge sort to find count
-            cnt = cnt + (mid-left+1);
-            right++;
-        }
-    }
-    while(left <= mid){
-        temp.push_back(arr[left]);
-        left++;
-    }
-    while(right <= high){
-        temp.push_back(arr[right]);
-        right++;
-    }
-
-    //put anser in array
-    for(int i = low ; i <= high ; i++){
-        arr[i] = temp[i-low];
-    }
-
-    return cnt;
-}
-int mS(vector<int>&arr, int low , int high){
-    int cnt = 0;
-    if(low == high){
-        return cnt;
-    }
-    int mid = (low+high)/2;
-    cnt += mS(arr, low, mid);
-    cnt += mS(arr, mid+1, high);
-    cnt += merge(arr, low , mid , high);
-
-    return cnt;
-}
-int numberOfInversions(vector<int>&arr, int n) {
-    return mS(arr,0 , n-1);
-}
 /*
 Input: N = 5, arr[] = {2, 4, 1, 3, 5}
 Output: 3
@@ -744,102 +674,11 @@ The only possible way to rearrange them such that they satisfy all conditions is
 Other ways such as [1,-2,2,-5,3,-4], [3,1,2,-2,-5,-4], [-2,3,-5,1,-4,2] are incorrect because they do not satisfy one or more conditions. 
 */
 
-//20.2 ALTERNATE NUMBER (IF POSITIVE NUMBER != NEGATIVE NUMBER)                   {T.C = O(N) , S.C = O(N) }
-vector<int> alternateNumbers(vector<int>&a) {
-    int n = a.size();
-    //create 2 vectors
-    vector<int>pos, neg;
-    //push element to seperate vector
-    for(int i = 0 ; i < n ; i++){
-        if(a[i] > 0){
-            pos.push_back(a[i]);
-        }
-        else{
-            neg.push_back(a[i]);
-        }
-    }
-
-    if(pos.size() > neg.size()){
-        for(int i = 0 ; i < neg.size() ; i++){
-            a[2*i] = pos[i];
-            a[2*i + 1] = neg[i];
-        }
-        //put pos element directly to array
-        int index = neg.size()*2;
-        for(int j = neg.size() ; j < pos.size(); j++){
-            a[index] = pos[j];
-            index++;
-        }
-    }
-    else{ //pos.size() < neg.size()
-        for(int i = 0 ; i < pos.size() ; i++){
-            a[2*i] = pos[i];
-            a[2*i + 1] = neg[i];
-        }
-        //put neg element directly to array
-        int index = pos.size()*2;
-        for(int j = pos.size() ; j < neg.size(); j++){
-            a[index] = neg[j];
-            index++;
-        }
-    }
-    return a;
-}
-
-//21. SUBARRAY WITH 0 SUM
-//BRUTE FORCE                                                                               {T.C = O(N^2), S.C = O(1)}
-class Solution{
-    public:
-    bool subArrayExists(int arr[], int n)
-    {
-        for(int i = 0 ; i < n ; i++){
-            int sum = 0; 
-            for(int j = i ; j < n ; j++){
-                sum += arr[j];
-                if(sum == 0){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-};
-//OPTIMIZED APPROACH (HASHING)                                                              {T.C = O(N), S.C = O(N)}
-class Solution{
-    public:
-    bool subArrayExists(int arr[], int n)
-    {
-        //hashing and prefix sum concept
-        unordered_set<int>s;
-        int sum = 0;
-        for(int i = 0 ; i < n ; i++){
-            sum += arr[i];
-            if(sum == 0){
-                return true;
-            }
-            if(s.find(sum) != s.end()){
-                return true;
-            }
-            s.insert(sum);
-        }
-        return false;
-    }
-};
-/*
-Input:
-5
-4 2 -3 1 6
-
-Output: 
-Yes
-
-Explanation: 
-2, -3, 1 is the subarray 
-with sum 0.
-*/
 
 
-//22. FACTORIAL OF LARGE NUMBER                                                          {T.C = O(N^2), S.C = O(N)}
+
+
+//22. FACTORIAL OF LARGE NUMBER (mt kro)                                                         {T.C = O(N^2), S.C = O(N)}
 class Solution {
 public:
     vector<int> factorial(int n) {
@@ -919,26 +758,26 @@ is [6, -3, -10] which gives product as 180.
 
 //24. FIND LONGEST CONSECUTIVE SUBSEQUECE                                   {T.C = O(N), S.C = O(N)}
 class Solution{
-  public:
-    int findLongestConseqSubseq(int arr[], int n)
-    {
-        //create a set
-        set<int>s;
-        //insert all elements to set
-        for(int i = 0 ; i < n ; i++){
+public:
+    int findLongestConseqSubseq(int arr[], int n) {
+        unordered_set<int> s;
+
+        for (int i = 0; i < n; i++) {
             s.insert(arr[i]);
         }
-        
-        int ans = INT_MIN;                     //finding maximum/longest sequence
-        for(int i = 0 ; i < n ; i++){
-            if(s.find(arr[i]-1) == s.end()){
-                int j = arr[i]+1;
-                while(s.find(j) != s.end()){
-                    j++;
+          for (int i = 0; i < n; i++) {
+            if (s.find(arr[i] - 1) == s.end()) {
+                int length = 1;
+
+                while (s.find(arr[i] + 1) != s.end()) {
+                    arr[i]++;
+                   length++;
                 }
-                ans = max(ans, j-arr[i]);
+
+               int ans = max(ans, length);
             }
         }
+
         return ans;
     }
 };
@@ -987,7 +826,7 @@ more than n/k times.
 */
 
 
-//26. BUY AND SELL A SHARE AT MOST TWICE
+//26. BUY AND SELL A SHARE AT MOST TWICE  (dont)
 //BRUTE FORCE(RECURSION)
 int solve(int index, bool buy, vector<int>&price, int limit){
     int n = price.size();
@@ -1011,51 +850,6 @@ int solve(int index, bool buy, vector<int>&price, int limit){
 int maxProfit(vector<int>&price){
     return solve(0, 1, price, 2);                     //index = 0 , buy = 1, limit = 2
 }
-//OPTIMIZED APPROACH(DP)                                                                  {T.C =  O(N), S.C = O(N)}
-//1 TEST CASE FAILED
-int solveMem(int index, bool buy, vector<int>&price, int limit, vector<vector<vector<int>>>&dp){
-    int n = price.size();
-    //base case
-    if(index == n || limit == 0){
-        return 0;
-    }
-    
-    //step-3 if ans already present return it
-    if(dp[index][buy][limit] != -1 ){
-        return dp[index][buy][limit];
-    }
-    int profit = 0;
-    if(buy){
-        int buyKaro = -price[index] + solveMem(index+1, 0, price, limit, dp);
-        int skipKaro = 0 + solveMem(index+1, 1, price, limit, dp);
-        profit = max(buyKaro, skipKaro);
-    }
-    else{
-        int sellKaro = +price[index] + solveMem(index+1, 1, price, limit-1, dp);
-        int skipKaro = 0 + solveMem(index+1, 0 , price, limit, dp);
-        profit = max(sellKaro, skipKaro);
-    }
-    //step-2 store ans in dp
-    dp[index][buy][limit] = profit;
-    return dp[index][buy][limit];
-}
-int maxProfit(vector<int>&price){
-    int n = price.size();
-    //step-1 create a dp vector
-    vector<vector<vector<int>>>dp(n, vector<vector<int>>(2, vector<int>(3, -1)));  //limit = 2+1 = 3
-    return solveMem(0, 1, price, 2, dp);                     //index = 0 , buy = 1, limit = 2
-}
-/*
-Input:
-6
-10 22 5 75 65 80
-Output:
-87
-Explanation:
-Trader earns 87 as sum of 12, 75 
-Buy at 10, sell at 22, 
-Buy at 5 and sell at 80
-*/
 
 
 //27. FIND WHETHER AN ARRAY IS A SUBSET OF ANOTHER ARRAY
@@ -1386,58 +1180,6 @@ middle element is the median
 */
 
 
-
-
-//36. MEDIAN OF 2 SORTED ARRAYS OF DIFFERENT SIZE                            {T.C =O(log(min(n1, n2))) , S.C = O(1) } 
-class Solution{
-    public:
-    double MedianOfArrays(vector<int>& a1, vector<int>& a2)
-    {
-        //using binary search
-        int n1 = a1.size();
-        int n2 = a2.size();
-        
-        if(n2 < n1){
-            return MedianOfArrays(a2, a1);
-        }
-        
-        int low = 0 , high = n1;
-        
-        while(low <= high){
-            int cut1 = (low+high)/2;
-            int cut2 = ((n1+n2+1)/2) - cut1;
-            int left1 = cut1 == 0 ? INT_MIN : a1[cut1-1];
-            int left2 = cut2 == 0 ? INT_MIN : a2[cut2-1];
-            int right1 = cut1 == n1 ? INT_MAX : a1[cut1];
-            int right2 = cut2 == n2 ? INT_MAX : a2[cut2];
-            
-            if(left1 <= right2 && left2 <= right1){
-                if((n1+n2) % 2 == 0){            //even
-                    return (max(left1, left2) + min(right1, right2))/2.0;
-                }
-                else{                            //odd
-                    return max(left1, left2);
-                }
-            }
-            else if(left1 > left2){
-                high = cut1-1;                   //move left
-            }
-            else{
-                low = cut1+1;                    //move right
-            }
-        }
-        return 0.0;
-    }
-};
-/*
-Input:
-m = 3, n = 4
-array1[] = {1,5,9}
-array2[] = {2,3,6,7}
-Output: 5
-Explanation: The middle element for
-{1,2,3,5,6,7,9} is 5
-*/
 
 
 /*----------------------------------------------------  THE  END    ---------------------------------------------------------*/
