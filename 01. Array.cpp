@@ -3,17 +3,7 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-//01. REVERSE THE STRING                                                         {T.C = O(N), S.C = O(1)}
-string reverseWord(string str){
-    int n = str.length();
-    for(int i = 0 ; i < n/2 ; i++){
-        char temp = str[i];
-        str[i] = str[n-i-1];
-        str[n-i-1] = temp;
-    }
-    cout<<str;
-}
-//another approach
+
 class Solution {
 public:
     void reverseString(vector<char>& s) {
@@ -354,28 +344,6 @@ and from here we will jump to the last.
 
 
 //11. FIND THE DUPLICATE NUMBER (THE FLOYD'S TORTOISE AND HARE ALGORITHM // TWO POINTER)                   {T.C = O(N), S.C = O(1)}
-class Solution {
-public:
-    int findDuplicate(vector<int>& nums) {
-        int slow = nums[0];
-        int fast = nums[0];
-
-        //finds cycle is present or not
-        do {
-            slow = nums[slow];
-            fast = nums[nums[fast]];
-        } while (slow != fast);
-
-        //to find actual number
-        fast = nums[0];
-        while (slow != fast) {
-            slow = nums[slow];
-            fast = nums[fast];
-        }
-
-        return slow;
-    }
-};
 
 OR 
 
@@ -437,31 +405,7 @@ non-decreasing arrays, we get,
 */
 
 //14. MERGE INTERVALS                                                  {T.C = O(NLOGN), S.C = O(N)}
-class Solution {
-public:
-    vector<vector<int>> merge(vector<vector<int>>& intervals) {
-        vector<vector<int>>ans;                //stores final merged intervals ans
-        //base case
-        if(intervals.size() == 0){
-            return ans;
-        }
-        //sort the intervals
-        sort(intervals.begin(), intervals.end());
-        vector<int>tempInterval = intervals[0];           //store temprory answer
-        for(auto i : intervals){
-            if(i[0] <= tempInterval[1]){
-                tempInterval[1] = max(i[1], tempInterval[1]);
-            }
-            else{
-                ans.push_back(tempInterval);
-                tempInterval = i;
-            }
-        }
-        ans.push_back(tempInterval);
-        
-        return ans;
-    }
-};
+
 /*
 Input: intervals = [[1,3],[2,6],[8,10],[15,18]]
 Output: [[1,6],[8,10],[15,18]]
@@ -1035,23 +979,7 @@ map<int, int> Map;
     return -1; // No majority element found
 }
 //pivot equilibrium
-class Solution {
-public:
-    int pivotIndex(vector<int>& nums) {
-        int right_sum = accumulate(nums.begin(), nums.end(), 0); // Calculate total sum
-        int left_sum = 0;
-        
-        for (int i = 0; i < nums.size(); i++) {
-            right_sum -= nums[i]; // Subtract the current element from the right sum
-            if (left_sum == right_sum) {
-                return i; // Found the pivot index
-            }
-            left_sum += nums[i]; // Add the current element to the left sum for the next iteration
-        }
-        
-        return -1; // No pivot index found
-    }
-};
+
 //count pair with sum target K/0
 int countPairsWithSum(vector<int>& arr, int targetSum) {
    map<int, int> m;
@@ -1469,23 +1397,48 @@ void rotateLeft(vector<int>& nums, int k) {
     nums = temp;    
 }
 //triplet sum with 0/k   
-vector<vector<int>> findTripletsWithSum(vector<int>& nums, int targetSum) {
-    vector<vector<int>> triplets;
-	set<int> s;
-    int n = nums.size();
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int>> triplets;
+        int n = nums.size();
 
-    for (int i = 0; i < n - 2; ++i) {
-   for (int j = i + 1; j < n; ++j) {
-            int k = targetSum - nums[i] - nums[j];
-            if (s.find(k) != s.end()) {
-                triplets.push_back({nums[i], nums[j], k});
+        sort(nums.begin(), nums.end());
+
+        for (int i = 0; i < n - 2; ++i) {
+            if (i > 0 && nums[i] == nums[i - 1]) {
+                continue; // Skip duplicates.
             }
-            s.insert(nums[j]);
-        }
-    }
 
-    return triplets;
-}
+            int left = i + 1;
+            int right = n - 1;
+
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+
+                if (sum == 0) {
+                    triplets.push_back({nums[i], nums[left], nums[right]});
+                    left++;
+                    right--;
+
+                    // Skip duplicates of the left and right elements.
+                    while (left < right && nums[left] == nums[left - 1]) {
+                        left++;
+                    }
+                    while (left < right && nums[right] == nums[right + 1]) {
+                        right--;
+                    }
+                } else if (sum < 0) {
+                    left++;
+                } else {
+                    right--;
+                }
+            }
+        }
+
+        return triplets;
+    }
+};
 //largest subaaraay with target k/0
 lass Solution{
 public:
@@ -1500,7 +1453,7 @@ public:
             if (m.find(sum - K) != m.end()) {
                 length =max(length, i - m[sum - K]);
             }
-            if (m.find(sum) == m.end()) {
+            if (m.find(sum) == m.end()) {              0 me ye wali line nhi hoti and else hota yha bs 
                 m[sum] = i;
             }
         }
@@ -1510,20 +1463,7 @@ public:
 };
 // row with  max 1s/0s
 int findRowWithMaxZeros(const vector<vector<int>>& matrix) {
-    int Row = -1; // Initialize with an invalid value
-    int Count = -1; // Initialize with an invalid value   (0) for 1s
-    
-    for (int i = 0; i < matrix.size(); ++i) {
-        int zerosCount = count(matrix[i].begin(), matrix[i].end(), 0);       (1) for 1s
-        
-        if (zerosCount > Count) {
-            Count = zerosCount;
-            Row = i;
-        }
-    }
-    
-    return Row;
-}
+ 
 // fist and last occurernces
 pair<long, long> indexes(const vector<long long>& v, long long x) {
     long firstIndex = -1;
@@ -1563,13 +1503,13 @@ pair<int, int> twoSum(const vector<int>& nums, int target) {
         int complement = target - nums[i];
         
         if (m.find(complement) != m.end()) {
-            return {m[complement], i};
+            return {m[complement], i};         // (true)
         }
         
         m[nums[i]] = i;              // isme bhi h
     }
     
-    return {-1, -1}; // No valid solution found
+    return {-1, -1}; // No valid solution found    // (false)
 }
 
 //add two arrays
@@ -1588,10 +1528,10 @@ vector<int> sumArrays(const vector<int>& arr1, const vector<int>& arr2) {
 // sum of infinity array
 int main() {
     
-    const int maxSize = 1000000; 
+    const int maxi = 1000000; 
     int sum = 0;
 
-    for (int i = 0; i < maxSize; ++i) {
+    for (int i = 0; i < maxi; ++i) {
         sum += i;
     }
 
@@ -1612,15 +1552,15 @@ int countPairsWithDifference(const std::vector<int>& nums, int k) {
 
     return count;
 }
-// find pair with diddernce
+// find pair with differnce
 bool hasPairWithDifference(const vector<int>& arr, int N) {
- unordered_set<int> seen;
+ unordered_set<int> m;
 
-    for (int num : arr) {
-        if (seen.count(num + N) || seen.count(num - N)) {
+   for (int i=0;i<arr.size;i++) {
+        if (m.count(arr(i) + N) or m.count(arr(i) - N)) {
             return true; // Found a valid pair
         }                                                                            // both solution are same
-        seen.insert(num);
+        m.insert(num);
     }
 
     return false; // No valid pair found
@@ -1629,7 +1569,6 @@ bool hasPairWithDifference(const vector<int>& arr, int N) {
 int findPairs(vector<int>& nums, int k) {
         sort(nums.begin(), nums.end());
         map<int, int> m;
-        int count = 0;
         int n = nums.size();
         
         for (int i = 0; i < n; i++) {
