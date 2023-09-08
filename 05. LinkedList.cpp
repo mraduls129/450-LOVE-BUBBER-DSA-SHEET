@@ -124,67 +124,91 @@ resultant linked list is 4->2->2->1->8->7->6->5.
 
 
 //129. DETECT LOOP IN A LINKED LIST                                                  {T.C = O(N), S.C = O(N)}
-class Solution
+#include <iostream>
+
+struct ListNode {
+    int value;
+    ListNode* next;
+    ListNode(int val) : value(val), next(nullptr) {}
+};
+
+// Function to detect a loop in a linked list using Floyd's Cycle Detection Algorithm.
+bool hasLoop(ListNode* head) {
+    if (head == nullptr || head->next == nullptr) {
+        return false; // No loop if there are 0 or 1 nodes.
+    }
+
+    ListNode* slow = head;
+    ListNode* fast = head;
+
+    while (fast != nullptr && fast->next != nullptr) {
+        slow = slow->next;         // Move one step at a time.
+        fast = fast->next->next;   // Move two steps at a time.
+
+        // If there's a loop, the slow and fast pointers will meet.
+        if (slow == fast) {
+            return true;
+        }
+    }
+
+    return false; // No loop found.
+}
+
+// Function to remove a loop in a linked list if one exists.
+/*
+structure of linked list node:
+
+struct Node
 {
-    public:
-    bool detectLoop(Node* head)
+    int data;
+    Node* next;
+    
+    Node(int val)
     {
-        if(head == NULL){
-            return false;
-        }
-        
-        unordered_map<Node*, bool>mp;
-        
-        Node *temp = head;
-        while(temp != NULL){
-            if(mp[temp] == true){
-                return true;
-            }
-            mp[temp] = true;
-            temp = temp->next;
-        }
-        return false;
+        data = val;
+        next = NULL;
     }
 };
 
-//USING FLOYD'S CYCLE                                                             {T.C = O(N), S.C = O(1)}
+*/
+
 class Solution
 {
     public:
-    //Function to check if the linked list has a loop.
-    bool detectLoop(Node* head)
+    //Function to remove a loop in the linked list.
+    void removeLoop(Node* head)
     {
-        if(head == NULL){
-            return false;
-        }
+        // code here
+        // just remove the loop without losing any nodes
+        Node *slow = head, *fast = head, *prev = NULL;
+        bool loopDetected = false;
         
-        Node* slow = head;
-        Node* fast = head;
-        
-        while(slow != NULL && fast != NULL && fast->next != NULL){
+        while(fast && fast->next && fast->next->next) {
+            prev = slow;
             slow = slow->next;
             fast = fast->next->next;
             
-            if(slow == fast){
-                return true;
+            if(slow == fast) {
+                slow = head; // Reset one of slow or fast pointers
+                loopDetected = true;
+                break;
             }
         }
-        return false;
+        
+        if(!loopDetected) return;
+        
+        while(slow != fast) {
+            prev = prev->next; // move prev till the last node (from where the pointer loops back)
+            slow = slow->next;
+            fast = fast->next;
+        }
+        
+        prev->next = nullptr;
     }
 };
-/*
-Input:
-N = 3
-value[] = {1,3,4}
-x(position at which tail is connected) = 2
-Output: True
-Explanation: In above test case N = 3.
-The linked list with nodes N = 3 is
-given. Then value of x=2 is given which
-means last node is connected with xth
-node of linked list. Therefore, there
-exists a loop.
-*/
+
+
+
 ------------------------------------
 	implementation of linked list
 	
@@ -239,64 +263,8 @@ void deleteItem()
 --------------------------------------------------------
 
 
-//130. REMOVE LOOP IN LINKED LIST                                                        {T.C = O(N), S.C = O(1)}
-class Solution
-{
-public:
-    // Function to remove a loop in the linked list.
-    void removeLoop(Node* head)
-    {
-        Node* slow = head;
-        Node* fast = head;
-        Node* loopNode = NULL;
-        
-        // Detect the loop using Floyd's cycle detection algorithm.
-        while(slow != NULL && fast != NULL && fast->next != NULL){
-            slow = slow->next;
-            fast = fast->next->next;
-            
-            if(slow == fast){
-                loopNode = slow;
-                break;
-            }
-        }
-        
-        // If no loop is found, simply return.
-        if (loopNode == NULL) {
-            return;
-        }
-        
-        Node* startNode = head;
-        while(startNode != loopNode){
-            startNode = startNode->next;
-            loopNode = loopNode->next;
-        }
-        
-        Node* lastNode = loopNode;
-        while(lastNode->next != loopNode){
-            lastNode = lastNode->next;
-        }
-        
-        // Break the loop by updating the last node's next pointer.
-        lastNode->next = NULL;
-    }
-};
-/*
-Input:
-N = 3
-value[] = {1,3,4}
-X = 2
-Output: 1
-Explanation: The link list looks like
-1 -> 3 -> 4
-     ^    |
-     |____|    
-A loop is present. If you remove it 
-successfully, the answer will be 1. 
-*/
 
-
-//131. FIND THE FIRST NODE OF LOOP IN LINKED LIST   or detect loop                                         {T.C = O(N), S.C = O(1)}
+//131. FIND THE FIRST NODE OF LOOP IN LINKED LIST                                         {T.C = O(N), S.C = O(1)}
 class Solution
 {
     public:
@@ -742,8 +710,60 @@ will be 1->2->3->4->5.
 */
 
 
-//140. QUICK SORT FOR LINKED LIST
+//140. check palindrome FOR LINKED LIST
 
+/*
+struct Node {
+  int data;
+  struct Node *next;
+  Node(int x) {
+    data = x;
+    next = NULL;
+  }
+};
+*/
+
+class Solution{
+  public:
+    //Function to check whether the list is palindrome.
+    Node* reverse(Node* root){
+        Node* prev = NULL;
+        Node* curr = root;
+        Node* next = NULL;
+        
+        while( curr != NULL){
+            next = curr->next;
+            curr->next=prev;
+            prev=curr;
+            curr=next;
+        }
+        return prev;
+    }
+    bool isPalindrome(Node *head)
+    {
+       Node* slow = head;
+       Node* fast = head->next;
+       while(slow != NULL && fast != NULL){
+           fast = fast->next;
+           if(fast == NULL){
+              break;
+           }
+           fast = fast->next;
+           slow = slow->next;
+       }
+       slow = reverse(slow->next);
+       fast = head;
+       while(slow != NULL && fast != NULL){
+           if(fast->data != slow->data){
+               return 0;
+           }
+            fast = fast->next;
+           slow = slow->next;
+       }
+       return 1;
+    }
+};
+-------------------------------------------
 
 //141. MIDDLE OF THE LINKED LIST                                                                    {T.C = O(N), S.C = O(1)}
 class Solution {
@@ -825,7 +845,7 @@ Output:
 */
 
 
-//144. CHECK IF LINKED LIST IS PALINDROME                                                  {T.C = O(N), S.C = O(N)}
+//144. CHECK IF LINKED LIST IS PALINDROME                                                 {T.C = O(N), S.C = O(N)}
 //BRUTE FORCE
 #include<vector>
 bool checkPalindrome(vector<int>&ans){
