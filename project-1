@@ -1,4 +1,4 @@
-  TALK Ai
+  TALK Ai(4)
   ------------------------------------ SERVER
   // Import required modules and packages using ES6 import statements`	 import express from 'express'; // Import Express.js framework
 import * as dotenv from 'dotenv'; // Import dotenv for environment variables
@@ -35,15 +35,15 @@ app.get('/', async (req, res) => {
 // Define a route to handle POST requests at the root URL
 app.post('/', async (req, res) => {
   try {
-    // Extract the 'prompt' field from the JSON body of the request
+    // create the 'prompt' field from the JSON body of the request
     const prompt = req.body.prompt;
 
-    // Use the OpenAI API to create a completion for the provided 'prompt'
+    // create the response using open API for promt field
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
       prompt: `${prompt}`,
       temperature: 0, // Higher values make the model take more risks
-      max_tokens: 3000, // Maximum number of tokens to generate in the completion
+      max_tokens: 3000, // Maximum number of tokens to generate in the response
       top_p: 1, // Alternative to sampling with temperature
       frequency_penalty: 0.5, // Penalize tokens based on frequency
       presence_penalty: 0, // Penalize tokens based on presence
@@ -55,7 +55,7 @@ app.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send(error || 'Something went wrong');
+    res.status(500).send(error || 'Something went wrong');  // Send the generated respnse as a error or something went wrong
   }
 });
 
@@ -67,7 +67,7 @@ app.listen(5000, () => console.log('AI server started on http://localhost:5000')
 import bot from './assets/bot.svg';
 import user from './assets/user.svg';
 
-// Get form and chat container elements from the DOM
+// create form and chat container elements from the Document Object Model (DOM)
 const form = document.querySelector('form');
 const chatContainer = document.querySelector('#chat_container');
 
@@ -90,16 +90,16 @@ function loader(element) {
     }, 300);
 }
 
-// Function to type out text with a typewriter effect
+// Function to display text with a typewriter effect
 function typeText(element, text) {
     let index = 0;
 
-    let interval = setInterval(() => {
+    let interval = setInterval(() => {    //  // Set an interval to update the effect
         if (index < text.length) {
-            element.innerHTML += text.charAt(index);
+            element.innerHTML += text.charAt(index);   //        // Update the text content of the typer effexct
             index++;
         } else {
-            clearInterval(interval);
+            clearInterval(interval);   // reseet interval
         }
     }, 20);
 }
@@ -204,8 +204,8 @@ form.addEventListener('keyup', (e) => {
     <link rel="stylesheet" href="style.css" /> <!-- Link to an external stylesheet named 'style.css' -->
   </head>
   <body> <!-- Start of the HTML body content -->
-    <div id="app"> <!-- Div element with an id of 'app', used as a container for the chat interface -->
-      <div id="chat_container"></div> <!-- Empty div element with an id of 'chat_container', where chat messages will be displayed -->
+    <div id="app"> <!-- make an app container for the chat interface -->
+      <div id="chat_container"></div>  ///<- make an chat container  for the  chat messages will be displayed -->
 
       <form> <!-- Start of a form element -->
         <textarea name="prompt" rows="1" cols="1" placeholder="Ask codex..."></textarea> <!-- Textarea input for user to input their message -->
@@ -378,9 +378,9 @@ form img {
   height: 30px;
 }
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                STOCK CRASH ALARM
+                STOCK CRASH ALARM (5)
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// Importing required libraries                                        SERVER
+// Importing required libraries  and packages                                      SERVER
 const express = require("express");
 const { default: puppeteer } = require("puppeteer");
 const nodemailer = require('nodemailer');
@@ -392,7 +392,7 @@ const bodyparser = require('body-parser')
 const mongoose = require('mongoose');
 const users = require('./models/schema')
 
-// Initializing the Express app
+// create the Express app and port
 const app = express();
 const port = process.env.PORT || 80;
 
@@ -1301,7 +1301,7 @@ app.listen(port, () => {
     <p class="un-sub">If you wish to unsubscribe from our mails <a href="/unsubscribe">Click Here</a></p>
 </body>
 </html>
------------------------------------------------------------models
+----------------------------------------------------models
 // Import the 'mongoose' module
 const mongoose = require('mongoose');
 
@@ -1309,7 +1309,6 @@ const mongoose = require('mongoose');
 mongoose.set('strictQuery', false);
 
 // Create a new instance of a mongoose schema
-// 'schema' here refers to the Schema class from the mongoose module
 var schema = mongoose.Schema;
 
 // Define the structure of the 'user' schema
@@ -1338,7 +1337,7 @@ let users = mongoose.model('users', userSchema, 'users');
 // Export the 'users' model to be used in other parts of the application
 module.exports = users;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                           CHAtify
+                           CHAtify (7)
 ---------------------------------------------------------------------------------------------------     SERVER                  
 // Import required modules
 const express = require("express");
